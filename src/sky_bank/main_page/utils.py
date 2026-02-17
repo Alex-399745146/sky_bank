@@ -1,30 +1,30 @@
 # utils.py
-""" Модуль вспомогательных функций выдающих данные основным функциям модуля views.py """
+"""Модуль вспомогательных функций выдающих данные основным функциям модуля views.py"""
 
 import os
-from src.sky_bank.data_extract import get_data_xlsx
 from datetime import datetime
-from collections import defaultdict
+
+from src.sky_bank.data_extract import get_data_xlsx
 
 
 # Tack_1 Приветствие
 def get_status_time_message() -> str:
-    """ Реализация приветствия в зависимости от времени суток """
+    """Реализация приветствия в зависимости от времени суток"""
     now_hour = datetime.now().hour
     if 5 <= now_hour < 12:
-        message = "утро"
+        message = "Доброе утро"
     elif 12 <= now_hour < 17:
-        message = "день"
+        message = "Добрый день"
     elif 17 <= now_hour < 23:
-        message = "вечер"
+        message = "Добрый вечер"
     else:
-        message = "ночи"
+        message = "Доброй ночи"
     return message
 
 
 # Task_2_1 По каждой карте
 def get_tzs_filter_date(tzs: list, date_string: str) -> list:
-    """ Фильтрация трансакций по временному периоду """
+    """Фильтрация трансакций по временному периоду"""
     down_date_filter = datetime.strptime(date_string, "%d.%m.%Y")
     start_date_filter = datetime(down_date_filter.year, down_date_filter.month, 1)
     filter_tzs = []
@@ -38,43 +38,89 @@ def get_tzs_filter_date(tzs: list, date_string: str) -> list:
 
 
 # Task_2_2 По каждой карте
-def get_count_carts(tzs: list) -> dict[str, float]:
-    """ Подсчитывает количество уникальных карт у клиента с суммой оборота по ним """
-    card_sums = defaultdict(float)
+def get_count_carts(tzs: list) -> list[dict]:
+    """Подсчитывает количество уникальных карт у клиента с суммой оборота по ним"""
+    card_sums: dict = {}
+
     for tz in tzs:
+
         card_number = tz["Номер карты"]
+        amount_str = tz["Сумма платежа"]
+
+        # Проверяем, что номер карты — строка
         if not isinstance(card_number, str):
             continue
-        amount = float(tz["Сумма платежа"])
-        card_sums[card_number] += abs(amount)
-    return dict(card_sums)
+
+        # Очищаем номер карты от нецифровых символов
+        card_digits = "".join(filter(str.isdigit, card_number))
+
+        # Берём последние 4 цифры (или меньше, если карта короткая)
+        last_digits = card_digits[-4:] if len(card_digits) >= 4 else card_digits
+
+        # Преобразуем сумму платежа в число
+        try:
+            amount = float(amount_str)
+
+            if last_digits in card_sums:
+                current_sum = card_sums[last_digits]
+            else:
+                current_sum = 0.0
+
+            new_sum = current_sum + abs(amount)
+            card_sums[last_digits] = new_sum
+
+        except (ValueError, TypeError):
+            continue  # Пропускаем некорректные суммы
+
+    result = []
+
+    for last_digits, total_spent in card_sums.items():
+        cashback = round(total_spent * 0.01, 2)  # Кэшбэк 1%
+
+        result.append({"last_digits": last_digits, "total_spent": round(total_spent, 2), "cashback": cashback})
+
+    return result
 
 
-# Tack_3 Топы транзакций по сумме платежа, отсортированы если надо 5 то [:5]
+# Tack_3 Топы транзакций по сумме платежа
 def get_sort_by_date(tzs: list[dict], direct_sort: bool = True) -> list:
-    """
-    Принимает список словарей и параметр сортировки (по умолчанию — убывание).
-    Возвращает новый список, отсортированный по сумме платежа.
-    """
+    """Сортировка трансакций по сумме платежа"""
     tzs_sorted = sorted(tzs, key=lambda tz: abs(tz["Сумма платежа"]), reverse=direct_sort)
-    return tzs_sorted
+
+    result = []
+
+    for tz in tzs_sorted:
+        date_tz = tz["Дата операции"].split(" ")[0]
+        amount_tz = tz["Сумма операции"]
+        category_tz = tz["Категория"]
+        description_tz = tz["Описание"]
+
+        result.append({"date": date_tz, "amount": amount_tz, "category": category_tz, "description": description_tz})
+
+    return result
 
 
 if __name__ == "__main__":  # pragma: no cover
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) # директ проекта
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))  # директ проекта
     path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
 
-    date_filter = '20.05.2020'  # %d.%m.%Y конечная дата текущего месяца выборки
-    transactions = get_data_xlsx(path_file_xlsx)
+    date_filter = "20.05.2020"  # фильтр от 1 числа месяца до date_filter
+    tzs = get_data_xlsx(path_file_xlsx)
 
-    date_filter_tzs = get_tzs_filter_date(transactions, date_filter)
-    for tz in date_filter_tzs:
-        print(tz)
+    # Реализация приветствия в зависимости от времени суток
+    # print(get_status_time_message())
 
-    # carts = get_count_carts(date_filter_tzs)
-    # for k, v in carts.items():
-    #     print(f"{k}: {round(v, 2)}")
+    # Фильтрация трансакций по временному периоду
+    date_filter_tzs = get_tzs_filter_date(tzs, date_filter)
+    # for tz in date_filter_tzs:
+    #     print(tz)
 
-    # date_sort_tzs = get_sort_by_date(transactions)
+    # Подсчитывает количество уникальных карт у клиента
+    carts = get_count_carts(date_filter_tzs)
+    # for cart in carts:
+    #     print(cart)
+
+    # Сортировка трансакций по сумме платежа
+    date_sort_tzs = get_sort_by_date(tzs)
     # for i in range(5):
     #     print(date_sort_tzs[i])

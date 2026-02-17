@@ -1,13 +1,14 @@
 """Модуль external_api.py содержит функции работающие c валютами а волатильность обновляет API"""
 
 import os
+from datetime import datetime, timedelta
+
 import apimoex
-import pandas as pd
 import cbrapi
+import pandas as pd
 import requests
 
 from src.sky_bank.data_extract import get_data_json
-from datetime import datetime, timedelta
 
 
 # Task_4 Курс валют

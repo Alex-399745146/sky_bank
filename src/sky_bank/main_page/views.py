@@ -2,12 +2,8 @@
 """ Модуль набора основных функций выдающих информацию для главной страницы """
 
 import os
+
 from src.sky_bank.data_extract import get_data_xlsx
-
-
-
-
-
 
 if __name__ == "__main__":  # pragma: no cover
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) # директ проекта
