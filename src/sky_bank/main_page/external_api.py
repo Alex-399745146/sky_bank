@@ -8,7 +8,7 @@ import cbrapi
 import pandas as pd
 import requests
 
-from src.sky_bank.data_extract import get_data_json
+from src.sky_bank.data_extract import get_convert_json_in_data
 
 
 # Task_4 Курс валют
@@ -75,7 +75,7 @@ if __name__ == "__main__":  # pragma: no cover
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))  # директ проекта
     path_file_json = os.path.join(project_root, "user_settings.json")
 
-    config_user: dict[str, list[str]] = get_data_json(path_file_json)
+    config_user: dict[str, list[str]] = get_convert_json_in_data(path_file_json)
     currency_codes: list[str] = config_user['user_currencies']
     stock_codes: list[str] = config_user['user_stocks']
 
