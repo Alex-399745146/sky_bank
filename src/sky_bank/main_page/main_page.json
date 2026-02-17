@@ -1,0 +1,64 @@
+{
+    "greeting": "Добрый вечер",
+    "cards": [
+        {
+            "last_digits": "7197",
+            "total_spent": 15413.5,
+            "cashback": 154.13
+        },
+        {
+            "last_digits": "4556",
+            "total_spent": 1065.0,
+            "cashback": 10.65
+        }
+    ],
+    "top_transactions": [
+        {
+            "date": "02.05.2020",
+            "amount": -9564.76,
+            "category": "Другое",
+            "description": "ГУП ВЦКП ЖХ"
+        },
+        {
+            "date": "05.05.2020",
+            "amount": 5000.0,
+            "category": "Пополнения",
+            "description": "Перевод с карты"
+        },
+        {
+            "date": "02.05.2020",
+            "amount": -2155.05,
+            "category": "ЖКХ",
+            "description": "ЖКУ Дом"
+        },
+        {
+            "date": "02.05.2020",
+            "amount": -2140.73,
+            "category": "ЖКХ",
+            "description": "ЖКУ Дом"
+        },
+        {
+            "date": "17.05.2020",
+            "amount": -815.0,
+            "category": "Книги",
+            "description": "Буквоед"
+        }
+    ],
+    "currency_rates": [
+        {
+            "currency": "USD",
+            "rate": 76.62
+        },
+        {
+            "currency": "EUR",
+            "rate": 91.04
+        }
+    ],
+    "stock_prices": {
+        "OZON": 4690.5,
+        "SBER": 310.31,
+        "VKCO": 322.15,
+        "VTBR": 88.425,
+        "YDEX": 4776.5
+    }
+}

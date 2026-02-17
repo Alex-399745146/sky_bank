@@ -34,6 +34,7 @@ def get_convert_data_in_json(data: dict) -> None:
 
 
 if __name__ == "__main__":  # pragma: no cover
+    # Директории
     current_dir = os.path.dirname(__file__)  # текущий директ
     project_root = os.path.dirname(os.path.dirname(current_dir))  # директ проекта
 
@@ -42,9 +43,11 @@ if __name__ == "__main__":  # pragma: no cover
 
     # Проверка считанных данных из файла.xlsx
     tzs = get_data_xlsx(path_file_xlsx)
+    # print(type(tzs))
     # for tz in tzs[:5]:
     #     print(tz)
 
     # Просмотреть конфиги пользователя
     config_user = get_convert_json_in_data(path_file_json)
     # print(config_user)
+    # print(type(config_user))

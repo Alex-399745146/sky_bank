@@ -97,7 +97,7 @@ def get_sort_by_date(tzs: list[dict], direct_sort: bool = True) -> list:
 
         result.append({"date": date_tz, "amount": amount_tz, "category": category_tz, "description": description_tz})
 
-    return result
+    return result[:5]
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -121,6 +121,6 @@ if __name__ == "__main__":  # pragma: no cover
     #     print(cart)
 
     # Сортировка трансакций по сумме платежа
-    date_sort_tzs = get_sort_by_date(tzs)
-    # for i in range(5):
-    #     print(date_sort_tzs[i])
+    date_sort_tzs = get_sort_by_date(date_filter_tzs)
+    for i in date_sort_tzs:
+        print(i)
