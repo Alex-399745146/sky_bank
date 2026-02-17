@@ -1,18 +1,18 @@
+# external_api.py
 """Модуль external_api.py содержит функции работающие c валютами а волатильность обновляет API"""
 
 import os
-from datetime import datetime, timedelta
-
 import apimoex
-import cbrapi
 import pandas as pd
+import cbrapi
 import requests
 
 from src.sky_bank.data_extract import get_convert_json_in_data
+from datetime import datetime, timedelta
 
 
 # Task_4 Курс валют
-def get_current_exchange_rate(money_list: list[str]) -> list[dict[str, str | float]]:
+def get_current_exchange_rate(money_list: list) -> list:
     """
     Запрашиваем данные по API(открытый) в ЦБ РФ и выдаем актуальные
     данные указанных валют в виде списка по обновлённым данным
@@ -35,6 +35,7 @@ def get_current_exchange_rate(money_list: list[str]) -> list[dict[str, str | flo
         )
 
         last_rate = answer_df.iloc[-1]
+
         result.append({
             'currency': code_money,
             'rate': round(float(last_rate), 2)
@@ -43,7 +44,7 @@ def get_current_exchange_rate(money_list: list[str]) -> list[dict[str, str | flo
     return result
 
 
-# Task_5 Стоимость акций Мосбиржи сегодня.
+# Task_5 Стоимость акций Мосбиржи
 def get_current_stock_price(tickers_list: list) -> dict | None:
     """ Актуализируем цены на акции по API(открытый) в Мосбирже """
     url = 'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json'
@@ -66,6 +67,7 @@ def get_current_stock_price(tickers_list: list) -> dict | None:
         result = data.to_dict()['LAST']
 
         return result
+
     else:
         print("Ошибка: данные о ценах не получены (пустой ответ API)")
         return None
@@ -75,17 +77,17 @@ if __name__ == "__main__":  # pragma: no cover
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))  # директ проекта
     path_file_json = os.path.join(project_root, "user_settings.json")
 
-    config_user: dict[str, list[str]] = get_convert_json_in_data(path_file_json)
-    currency_codes: list[str] = config_user['user_currencies']
-    stock_codes: list[str] = config_user['user_stocks']
+    config_user = get_convert_json_in_data(path_file_json)
+    currency_codes = config_user['user_currencies']
+    stock_codes = config_user['user_stocks']
 
-    # Проверка работы: get_current_exchange_rate
+    # Актуальные данные пар волют с Мосбиржи
     data_currency = get_current_exchange_rate(currency_codes)
     for price in data_currency:
         print(price)
     print()
 
-    # Проверка работы: get_current_stock_price
+    # Стоимость акций
     data_stock = get_current_stock_price(stock_codes)
     for key, value in data_stock.items():
         print(f'stock: {key} price: {value}')

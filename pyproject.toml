@@ -40,8 +40,8 @@ no_implicit_optional = true
 warn_return_any = true
 check_untyped_defs = false
 strict = false
-warn_unreachable = true
-exclude = ["**/venv/**", "**/__pycache__/**", ".git"]
+warn_unreachable = false
+exclude = [".venv", "__pycache__", ".git"]
 
 [[tool.mypy.overrides]]
 module = ['tests.*'] # для какого модуля
