@@ -112,8 +112,8 @@ if __name__ == "__main__":  # pragma: no cover
 
     # Фильтрация трансакций по временному периоду
     date_filter_tzs = get_tzs_filter_date(tzs, date_filter)
-    # for tz in date_filter_tzs:
-    #     print(tz)
+    for tz in date_filter_tzs:
+        print(tz)
 
     # Подсчитывает количество уникальных карт у клиента
     carts = get_count_carts(date_filter_tzs)
@@ -121,6 +121,6 @@ if __name__ == "__main__":  # pragma: no cover
     #     print(cart)
 
     # Сортировка трансакций по сумме платежа
-    date_sort_tzs = get_sort_by_date(date_filter_tzs)
-    for i in date_sort_tzs:
-        print(i)
+    # date_sort_tzs = get_sort_by_date(date_filter_tzs)
+    # for i in date_sort_tzs:
+    #     print(i)
