@@ -7,7 +7,7 @@ import pandas as pd
 import cbrapi
 import requests
 
-from src.sky_bank.data_extract import get_convert_json_in_data
+from src.data_extract import get_convert_json_in_data
 from datetime import datetime, timedelta
 
 
@@ -74,7 +74,7 @@ def get_current_stock_price(tickers_list: list) -> dict | None:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))  # директ проекта
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # директ проекта
     path_file_json = os.path.join(project_root, "user_settings.json")
 
     config_user = get_convert_json_in_data(path_file_json)

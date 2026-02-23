@@ -3,9 +3,9 @@
 
 import os
 
-from src.sky_bank.data_extract import get_convert_data_in_json, get_convert_json_in_data, get_data_xlsx
-from src.sky_bank.main_page.external_api import get_current_exchange_rate, get_current_stock_price
-from src.sky_bank.main_page.utils import (
+from src.data_extract import get_convert_data_in_json, get_convert_json_in_data, get_data_xlsx
+from src.main_page.external_api import get_current_exchange_rate, get_current_stock_price
+from src.main_page.utils import (
     get_count_carts,
     get_sort_by_date,
     get_status_time_message,
@@ -30,7 +30,7 @@ def get_main_page(tzs: list, date: str, config_user: dict) -> dict:
     # Курс валют
     currency_codes: list[str] = config_user["user_currencies"]
     result["currency_rates"] = get_current_exchange_rate(currency_codes)
-
+    # Тайм слип или Asing библиотека по потокам.
     # Стоимость акций
     stock_codes: list[str] = config_user["user_stocks"]
     result["stock_prices"] = get_current_stock_price(stock_codes)
@@ -41,7 +41,7 @@ def get_main_page(tzs: list, date: str, config_user: dict) -> dict:
 
 if __name__ == "__main__":  # pragma: no cover
     # Директории
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))  # директ проекта
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # директ проекта
     path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
     path_file_json = os.path.join(project_root, "user_settings.json")
 

@@ -4,7 +4,7 @@
 import os
 from datetime import datetime
 
-from src.sky_bank.data_extract import get_data_xlsx
+from src.data_extract import get_data_xlsx
 
 
 # Tack_1 Приветствие
@@ -101,14 +101,14 @@ def get_sort_by_date(tzs: list[dict], direct_sort: bool = True) -> list:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))  # директ проекта
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # директ проекта
     path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
 
     date_filter = "20.05.2020"  # фильтр от 1 числа месяца до date_filter
     tzs = get_data_xlsx(path_file_xlsx)
 
     # Реализация приветствия в зависимости от времени суток
-    # print(get_status_time_message())
+    print(get_status_time_message())
 
     # Фильтрация трансакций по временному периоду
     date_filter_tzs = get_tzs_filter_date(tzs, date_filter)

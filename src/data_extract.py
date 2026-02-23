@@ -36,16 +36,16 @@ def get_convert_data_in_json(data: dict) -> None:
 if __name__ == "__main__":  # pragma: no cover
     # Директории
     current_dir = os.path.dirname(__file__)  # текущий директ
-    project_root = os.path.dirname(os.path.dirname(current_dir))  # директ проекта
+    project_root = os.path.dirname(current_dir)  # директ проекта
 
     path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
     path_file_json = os.path.join(project_root, "user_settings.json")
 
     # Проверка считанных данных из файла.xlsx
     tzs = get_data_xlsx(path_file_xlsx)
-    # print(type(tzs))
-    # for tz in tzs[:5]:
-    #     print(tz)
+    print(type(tzs))
+    for tz in tzs[:50]:
+        print(tz)
 
     # Просмотреть конфиги пользователя
     config_user = get_convert_json_in_data(path_file_json)
