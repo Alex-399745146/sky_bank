@@ -6,10 +6,11 @@ from collections import defaultdict
 from datetime import datetime
 
 from src.data_extract import get_convert_data_in_json, get_data_xlsx
+from src.services_page.decorators import log
 
 
 def get_tzs_filter_date(full_tzs: list, date_string: str) -> list:
-    """Фильтрация трансакций в указанном месяце года"""
+    """Фильтрация трансакций в указанном периоде, период в 3 месяца"""
     obj_date = datetime.strptime(date_string, "%m.%Y")
 
     filter_month = obj_date.month
@@ -30,7 +31,9 @@ def get_tzs_filter_date(full_tzs: list, date_string: str) -> list:
     return filter_tzs
 
 
+@log()
 def get_category_tzs(filter_tzs: list, sort_direct: bool = True) -> dict:
+    """Реализация отчетов по отфильтрованному списку 3х месяцев"""
     category_sums: defaultdict = defaultdict(float)
 
     for tz in filter_tzs:

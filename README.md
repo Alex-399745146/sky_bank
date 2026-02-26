@@ -1,6 +1,6 @@
 # sky_bank
 
-### Приложение анализа транзакций
+## Приложение анализа транзакций
 
 ---
 
@@ -38,31 +38,48 @@ poetry config --list
 
 ---
 
-### Структура моего проекта
+## Структура курсового проекта
+```
+ tree -L 2
+```
 
 ```
 .
 |-- README.md
 |-- data
+|   |-- log_reports.txt
 |   `-- operations.xlsx
 |-- main.py
 |-- poetry.lock
 |-- pyproject.toml
 |-- src
-|   `-- sky_bank
-|       |-- __init__.py
-|       `-- views.py
+|   |-- __init__.py
+|   |-- __pycache__
+|   |-- data_extract.py
+|   |-- main_page
+|   |-- reports_page
+|   `-- services_page
 |-- tests
-|   `-- __init__.py
+|   |-- __init__.py
+|   `-- test_data_extract.py
 `-- user_settings.json
+
 ```
 
 ---
 
-### API-key 
+## API-key открытый ключь не нужен
 
-Нужно получить на этом ресурсе >>>
-[API-ключ](https://marketplace.apilayer.com/)
+Для стабильности работы ПО принял решение данные по парам валют и цены на акции брать из отечественных источников
+таких ка ЦБ РФ, "Мосбиржа".
+
+* Для корректной работы API-запросов установить библиотеки
+```shell
+import apimoex
+import cbrapi  # type: ignore
+```
+* В проекте есть шаблон файла `.env` с указанием названий всех переменных, необходимых для работы приложения.
+это сделанно для выполнения таска по курсовой работе.
 
 ---
 
@@ -70,6 +87,83 @@ poetry config --list
 ```
 {
   "user_currencies": ["USD", "EUR"],
-  "user_stocks": ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
+  "user_stocks": ["SBER", "YDEX", "VTBR", "OZON", "VKCO"]
 }
+```
+* Из-за действующих ограничений политического характера API ПО выдаёт актуальные данные - цены на акции только тех 
+компаний которые имеют доступ на торгуемую площадку Мосбиржи, а это как правило акции компаний соблюдающих законы РФ.'
+
+---
+
+## my_pyproject.toml
+
+```
+[project]
+name = "sky-bank"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Alexsandr Bachevskiy",email = "bachevskiiaa@gmail.com"}
+]
+readme = "README.md"
+#requires-python = ">=3.13"
+requires-python = ">=3.11,<4.0.0" # из-за конфликта c библ. cbrapi
+dependencies = [
+#    "pandas[excel] (>=3.0.0,<4.0.0)",
+    "pandas[excel] (>=2.3.2,<3.0.0)", # из-за конфликта c библ. cbrapi
+    "requests (>=2.32.5,<3.0.0)",
+    "apimoex (>=1.4.0,<2.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "sky_bank", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+lint = [
+    "flake8 (>=7.3.0,<8.0.0)",
+    "mypy (>=1.19.1,<2.0.0)",
+    "black (>=26.1.0,<27.0.0)",
+    "isort (>=7.0.0,<8.0.0)"
+]
+dev = [
+    "python-dotenv (>=1.2.1,<2.0.0)"
+]
+
+[tool.mypy]
+python_version = "3.13"
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_return_any = true
+check_untyped_defs = false
+strict = false
+warn_unreachable = false
+exclude = [".venv", "__pycache__", ".git"]
+
+[[tool.mypy.overrides]]
+module = ['tests.*'] # для какого модуля
+allow_untyped_defs = true # переопределение настройки
+
+[tool.black]
+line-length = 119
+exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | dist
+  )/
+  | foo.py
+)
+'''
+
+[tool.isort]
+line_length = 119
 ```

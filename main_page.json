@@ -1,5 +1,5 @@
 {
-    "greeting": "Доброй ночи",
+    "greeting": "Добрый вечер",
     "cards": [
         {
             "last_digits": "7197",
@@ -47,18 +47,18 @@
     "currency_rates": [
         {
             "currency": "USD",
-            "rate": 76.63
+            "rate": 76.47
         },
         {
             "currency": "EUR",
-            "rate": 90.58
+            "rate": 90.32
         }
     ],
     "stock_prices": {
-        "OZON": 4776.5,
-        "SBER": 317.57,
-        "VKCO": 312.25,
-        "VTBR": 88.21,
-        "YDEX": 4808.5
+        "OZON": 4769.5,
+        "SBER": 315.25,
+        "VKCO": 313.35,
+        "VTBR": 87.305,
+        "YDEX": 4809.0
     }
 }

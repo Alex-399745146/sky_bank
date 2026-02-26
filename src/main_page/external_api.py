@@ -3,11 +3,12 @@
 
 from datetime import datetime, timedelta
 from typing import Any
-
+import os
 import apimoex
 import cbrapi  # type: ignore
 import pandas as pd
 import requests
+from src.data_extract import get_convert_json_in_data
 
 
 # Task_4 Курс валют
@@ -61,21 +62,25 @@ def get_current_stock_price(tickers_list: list) -> Any:
         return None
 
 
-# if __name__ == "__main__":  # pragma: no cover
-# project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # директ проекта
-# path_file_json = os.path.join(project_root, "user_settings.json")
-#
-# config_user = get_convert_json_in_data(path_file_json)
-# currency_codes = config_user['user_currencies']
-# stock_codes = config_user['user_stocks']
+if __name__ == "__main__":  # pragma: no cover
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # директ проекта
+    path_file_json = os.path.join(project_root, "user_settings.json")
 
-# Актуальные данные пар волют с Мосбиржи
-# data_currency = get_current_exchange_rate(currency_codes)
-# for price in data_currency:
-#     print(price)
-# print()
+    config_user = get_convert_json_in_data(path_file_json)
+    currency_codes = config_user['user_currencies']
+    stock_codes = config_user['user_stocks']
+    # print(currency_codes)
+    # print(stock_codes)
 
-# Стоимость акций
-# data_stock = get_current_stock_price(stock_codes)
-# for key, value in data_stock.items():
-#     print(f'stock: {key} price: {value}')
+    # Актуальные данные пар волют с Мосбиржи
+    # data_currency = get_current_exchange_rate(currency_codes)
+    # print(type(data_currency))
+    # for price in data_currency:
+    #     print(price)
+    # print()
+
+    # Стоимость акций
+    data_stock = get_current_stock_price(stock_codes)
+    print(type(data_stock))
+    for key, value in data_stock.items():
+        print(f'stock: {key} price: {value}')

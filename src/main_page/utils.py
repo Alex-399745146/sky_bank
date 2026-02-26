@@ -104,16 +104,16 @@ if __name__ == "__main__":  # pragma: no cover
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # директ проекта
     path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
 
-    date_filter = "20.05.2020"  # фильтр от 1 числа месяца до date_filter
+    date_filter = "02.05.2021"  # фильтр от 1 числа месяца до date_filter
     tzs = get_data_xlsx(path_file_xlsx)
 
     # Реализация приветствия в зависимости от времени суток
-    print(get_status_time_message())
+    # print(get_status_time_message())
 
     # Фильтрация трансакций по временному периоду
     date_filter_tzs = get_tzs_filter_date(tzs, date_filter)
-    for tz in date_filter_tzs:
-        print(tz)
+    # for tz in date_filter_tzs:
+    #     print(tz)
 
     # Подсчитывает количество уникальных карт у клиента
     carts = get_count_carts(date_filter_tzs)
@@ -121,6 +121,6 @@ if __name__ == "__main__":  # pragma: no cover
     #     print(cart)
 
     # Сортировка трансакций по сумме платежа
-    # date_sort_tzs = get_sort_by_date(date_filter_tzs)
-    # for i in date_sort_tzs:
-    #     print(i)
+    date_sort_tzs = get_sort_by_date(date_filter_tzs)
+    for i in date_sort_tzs:
+        print(i)

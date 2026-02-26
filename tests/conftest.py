@@ -1,48 +1,26 @@
-# views.py
-"""Модуль набора основных функций выдающих информацию для главной страницы"""
+# conftest.py
+"""Файл conftest.py для хранения фикстур"""
 
 import os
+import pytest
 from math import nan
-from src.data_extract import get_convert_data_in_json, get_convert_json_in_data, get_data_xlsx
-from src.main_page.external_api import get_current_exchange_rate, get_current_stock_price
-from src.main_page.utils import get_count_carts, get_sort_by_date, get_status_time_message, get_tzs_filter_date
+import pandas as pd
 
 
-def get_main_page(tzs: list, date: str, config_user: dict) -> dict:
-    result: dict = {}
-
-    # Приветствие
-    result["greeting"] = get_status_time_message()
-
-    # По каждой карте
-    tzs_filter_datetime: list = get_tzs_filter_date(tzs, date)
-    unique_date: list = get_count_carts(tzs_filter_datetime)
-    result["cards"] = unique_date
-
-    # Топ транзакций по сумме платежа в указанный период
-    result["top_transactions"] = get_sort_by_date(tzs_filter_datetime)
-
-    # Курс валют
-    currency_codes: list[str] = config_user["user_currencies"]
-    result["currency_rates"] = get_current_exchange_rate(currency_codes)
-    # Тайм слип или Asing библиотека по потокам.
-    # Стоимость акций
-    stock_codes: list[str] = config_user["user_stocks"]
-    result["stock_prices"] = get_current_stock_price(stock_codes)
-
-    get_convert_data_in_json(result, "main_page.json")
-    return result
+@pytest.fixture
+def fix_data_df():
+    """Фикстура тестового DataFrame."""
+    data = {
+        "Дата операции": ["01.01.2021", "02.01.2021", "03.01.2021", "04.01.2021", "05.01.2021"],
+        "Сумма операции с округлением": [100, 200, 150, 300, 250]
+    }
+    return pd.DataFrame(data)
 
 
-if __name__ == "__main__":  # pragma: no cover
-    # Директории
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # директ проекта
-    path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
-    path_file_json = os.path.join(project_root, "user_settings.json")
-
-    # Вводные данные
-    # transactions = get_data_xlsx(path_file_xlsx)
-    transactions = [
+@pytest.fixture
+def fix_tzs_date() -> list:
+    """Фикстура трансакций в листе"""
+    small_list = [
         {'Дата операции': '01.05.2021 20:20:45', 'Дата платежа': '01.05.2021', 'Номер карты': '*7197', 'Статус': 'OK',
          'Сумма операции': -326.31, 'Валюта операции': 'RUB', 'Сумма платежа': -326.31, 'Валюта платежа': 'RUB',
          'Кэшбэк': nan, 'Категория': 'Супермаркеты', 'MCC': 5411.0, 'Описание': 'Магнит', 'Бонусы (включая кэшбэк)': 6,
@@ -76,11 +54,35 @@ if __name__ == "__main__":  # pragma: no cover
          'Кэшбэк': nan, 'Категория': 'Супермаркеты', 'MCC': 5411.0, 'Описание': 'Колхоз', 'Бонусы (включая кэшбэк)': 2,
          'Округление на инвесткопилку': 0, 'Сумма операции с округлением': 146.0}
     ]
-    # date_filter = "02.01.2021"
-    date_filter = "02.05.2021"
-    config = get_convert_json_in_data(path_file_json)
-    # print(type(config))
-    data_page = get_main_page(transactions, date_filter, config)
-    # print(data_page)
-    for k, v in data_page.items():
-        print(f"{k}: {v}")
+    return small_list
+
+
+@pytest.fixture
+def fix_user_settings_dict() -> dict:
+    """Фикстура конфиг настроек"""
+    config_dict = {
+        "user_currencies": ["USD", "EUR"],
+        "user_stocks": ["SBER", "YDEX", "VTBR", "OZON", "VKCO"]
+    }
+    return config_dict
+
+
+@pytest.fixture
+def project_root() -> str:
+    """Возвращает корневой путь проекта (папка sky_bank)"""
+    current_dir = os.path.dirname(__file__)  # директория tests/
+    return os.path.dirname(current_dir)  # директ проекта
+
+
+@pytest.fixture
+def fix_path_file_json(project_root) -> str:
+    """Путь к файлу user_settings.json"""
+    path_file_json = os.path.join(project_root, "user_settings.json")
+    return path_file_json
+
+
+@pytest.fixture
+def fix_path_file_xlsx(project_root) -> str:
+    """Путь к файлу operations.xlsx"""
+    path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
+    return path_file_xlsx

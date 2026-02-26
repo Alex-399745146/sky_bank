@@ -1,7 +1,8 @@
+# pyproject.toml
 [project]
 name = "sky-bank"
 version = "0.1.0"
-description = ""
+description = "Учебный курсовой проект"
 authors = [
     {name = "Alexsandr Bachevskiy",email = "bachevskiiaa@gmail.com"}
 ]
@@ -10,9 +11,12 @@ readme = "README.md"
 requires-python = ">=3.11,<4.0.0" # из-за конфликта c библ. cbrapi
 dependencies = [
 #    "pandas[excel] (>=3.0.0,<4.0.0)",
-    "pandas[excel] (>=2.3.2,<3.0.0)", # из-за конфликта c библ. cbrapi
     "requests (>=2.32.5,<3.0.0)",
-    "apimoex (>=1.4.0,<2.0.0)"
+    "apimoex (>=1.4.0,<2.0.0)",
+    "numpy (>=2.4.2,<3.0.0)",
+    "pandas >=2.3.2",               # вместо ">=3.0.1,<4.0.0"
+    "openpyxl (>=3.1.5,<4.0.0)",
+    "cbrapi (>=0.1.6,<0.2.0)"
 ]
 
 [tool.poetry]
@@ -30,7 +34,9 @@ lint = [
     "isort (>=7.0.0,<8.0.0)"
 ]
 dev = [
-    "python-dotenv (>=1.2.1,<2.0.0)"
+    "python-dotenv (>=1.2.1,<2.0.0)",
+    "pytest (>=9.0.2,<10.0.0)",
+    "pytest-cov (>=7.0.0,<8.0.0)"
 ]
 
 [tool.mypy]

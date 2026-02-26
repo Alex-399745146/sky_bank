@@ -15,22 +15,26 @@ def get_data_xlsx(path_file: str) -> Any:
     """Считывание данных из файла.xlsx и возвращение в виде списка словарей"""
     df = pd.read_excel(path_file)
     result = df.to_dict("records")  # 'records' определяет одну запись в одну строку
-
     return result
 
 
 def get_convert_json_in_data(path_file: str) -> Any:
-    """Считывание данных из файла.json и возвращение в виде словаря"""
+    """Считывание данных из файла.json c конфигами и возвращение в виде словаря"""
     with open(path_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-
     return data
 
 
-def get_convert_data_in_json(data: dict, name_file: str) -> None:
+def get_convert_data_in_json(data: dict, name_file: str) -> Any:
     """Вводимые данные сохраняем в json формате"""
     with open(name_file, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+def get_df_from_xlsx(path_file: str) -> pd.DataFrame:
+    """Вывод данных из файла.xlsx в виде DataFrame таблицы"""
+    df = pd.read_excel(path_file)
+    return df
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -43,11 +47,18 @@ if __name__ == "__main__":  # pragma: no cover
 
     # Проверка считанных данных из файла.xlsx
     tzs = get_data_xlsx(path_file_xlsx)
-    print(type(tzs))
-    for tz in tzs[:50]:
-        print(tz)
+
+
+
+    # print(type(tzs))
+    # for tz in tzs[:5]:
+    #     print(type(tz['Номер карты']))
 
     # Просмотреть конфиги пользователя
-    config_user = get_convert_json_in_data(path_file_json)
+    # config_user = get_convert_json_in_data(path_file_json)
     # print(config_user)
     # print(type(config_user))
+
+    # Просмотр DataFrame
+    data_df = get_df_from_xlsx(path_file_xlsx)
+    print(data_df.head())
