@@ -15,5 +15,5 @@ def test_get_main_page(fix_tzs_date, fix_user_settings_dict):
     assert isinstance(result.get("top_transactions"), list)
     assert isinstance(result.get("currency_rates"), list)
     assert len(result.get("currency_rates")) == len(fix_user_settings_dict["user_currencies"])
-    assert isinstance(result.get("stock_prices"), dict)
+    assert isinstance(result.get("stock_prices"), list)
     assert len(result.get("stock_prices")) == len(fix_user_settings_dict["user_stocks"])

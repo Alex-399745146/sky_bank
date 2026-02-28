@@ -2,10 +2,11 @@
 """Модуль с тестами"""
 
 import os
-from typing import Callable
+
 from src.services_page.decorators import log
 
-def test_log(path_filename: str | None = None) -> Callable:
+
+def test_log() -> None:
     """Тест декораторной функции"""
     # Создаём временный файл для логов
     test_log_file = "test_file.log"

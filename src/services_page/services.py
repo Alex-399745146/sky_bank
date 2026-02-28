@@ -10,7 +10,7 @@ from src.services_page.decorators import log
 
 
 def get_tzs_filter_date(full_tzs: list, date_string: str) -> list:
-    """Фильтрация трансакций в указанном периоде, период в 3 месяца"""
+    """Фильтрация трансакций в указанном периоде, период 3 месяца"""
     obj_date = datetime.strptime(date_string, "%m.%Y")
 
     filter_month = obj_date.month
@@ -53,7 +53,7 @@ if __name__ == "__main__":  # pragma: no cover
     path_file_xlsx = os.path.join(project_root, "data", "operations.xlsx")
 
     # Вводные данные
-    date_month_year = "05.2020"
+    date_month_year = "05.2021"
     tzs = get_data_xlsx(path_file_xlsx)
 
     # Для упрощения и чистоты кода ввод данных 2 а не 3 аргумента

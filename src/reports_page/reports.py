@@ -53,7 +53,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     # Исходные данные
     tzs_df = get_df_from_xlsx(path_file_xlsx)
-    date = "20.05.2020"
+    date = "20.05.2021"
 
     avr_amount = spending_by_workday(tzs_df, date)
 

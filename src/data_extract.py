@@ -48,8 +48,6 @@ if __name__ == "__main__":  # pragma: no cover
     # Проверка считанных данных из файла.xlsx
     tzs = get_data_xlsx(path_file_xlsx)
 
-
-
     # print(type(tzs))
     # for tz in tzs[:5]:
     #     print(type(tz['Номер карты']))

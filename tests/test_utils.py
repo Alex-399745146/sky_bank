@@ -1,35 +1,30 @@
 # test_utils.py
 """Модуль с тестами"""
 
-from src.main_page.utils import (
-    get_status_time_message,
-    get_tzs_filter_date,
-    get_count_carts,
-    get_sort_by_date
-)
-
-from unittest.mock import patch
 from datetime import datetime
+from unittest.mock import patch
+
+from src.main_page.utils import get_count_carts, get_sort_by_date, get_status_time_message, get_tzs_filter_date
 
 
-@patch('src.main_page.utils.datetime')
+@patch("src.main_page.utils.datetime")
 def test_get_status_time_message(mock_datetime):
     """Замокаем функцию datetime.now() проверим логику функции"""
     mock_datetime.now.return_value = datetime(2023, 1, 1, 4, 30, 0)
     result = get_status_time_message()
-    assert result == 'Доброй ночи'
+    assert result == "Доброй ночи"
 
     mock_datetime.now.return_value = datetime(2023, 1, 1, 6, 30, 0)
     result_1 = get_status_time_message()
-    assert result_1 == 'Доброе утро'
+    assert result_1 == "Доброе утро"
 
     mock_datetime.now.return_value = datetime(2023, 1, 1, 13, 30, 0)
     result_2 = get_status_time_message()
-    assert result_2 == 'Добрый день'
+    assert result_2 == "Добрый день"
 
     mock_datetime.now.return_value = datetime(2023, 1, 1, 18, 30, 0)
     result_3 = get_status_time_message()
-    assert result_3 == 'Добрый вечер'
+    assert result_3 == "Добрый вечер"
 
 
 def test_get_status_time_message_2():

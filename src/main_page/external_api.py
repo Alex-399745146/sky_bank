@@ -1,13 +1,15 @@
 # external_api.py
 """Модуль external_api.py содержит функции работающие c валютами а волатильность обновляет API"""
 
+import os
 from datetime import datetime, timedelta
 from typing import Any
-import os
+
 import apimoex
 import cbrapi  # type: ignore
 import pandas as pd
 import requests
+
 from src.data_extract import get_convert_json_in_data
 
 
@@ -51,15 +53,18 @@ def get_current_stock_price(tickers_list: list) -> Any:
     # Проверка наличия данных в ответе
     if "marketdata" in data and data["marketdata"]:
         prices_df = pd.DataFrame(data["marketdata"])
-        data = prices_df[prices_df["SECID"].isin(tickers_list)]
-        data = data.set_index("SECID")  # убираем столбец порядковых номеров
-        result = data.to_dict()["LAST"]
+        filtered_data = prices_df[prices_df["SECID"].isin(tickers_list)]
+
+        result = [
+            {"stock": row["SECID"], "price": float(row["LAST"]) if pd.notna(row["LAST"]) else None}
+            for _, row in filtered_data.iterrows()
+        ]
 
         return result
 
     else:
         print("Ошибка: данные о ценах не получены (пустой ответ API)")
-        return None
+        return []
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -67,8 +72,8 @@ if __name__ == "__main__":  # pragma: no cover
     path_file_json = os.path.join(project_root, "user_settings.json")
 
     config_user = get_convert_json_in_data(path_file_json)
-    currency_codes = config_user['user_currencies']
-    stock_codes = config_user['user_stocks']
+    currency_codes = config_user["user_currencies"]
+    stock_codes = config_user["user_stocks"]
     # print(currency_codes)
     # print(stock_codes)
 
@@ -82,5 +87,6 @@ if __name__ == "__main__":  # pragma: no cover
     # Стоимость акций
     data_stock = get_current_stock_price(stock_codes)
     print(type(data_stock))
-    for key, value in data_stock.items():
-        print(f'stock: {key} price: {value}')
+    for items in data_stock:
+        print(items)
+        # print(f'stock: {key} price: {value}')

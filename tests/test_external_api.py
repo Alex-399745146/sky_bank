@@ -30,10 +30,10 @@ def test_get_current_stock_price(fix_user_settings_dict):
 
     result = get_current_stock_price(set_config)
 
-    assert isinstance(result, dict)
+    assert isinstance(result, list)
     if len_set_config > 0:
         assert len_set_config == len(result)
-        for key, value in result.items():
-            assert isinstance(key, str)
-            assert key.isupper()
-            assert isinstance(value, float)
+        for item in result:
+            assert isinstance(item["stock"], str)
+            assert item["stock"].isupper()
+            assert isinstance(item["price"], float)
