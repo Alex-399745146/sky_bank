@@ -1,0 +1,79 @@
+{
+    "greeting": "Добрый вечер",
+    "cards": [
+        {
+            "last_digits": "7197",
+            "total_spent": 880.07,
+            "cashback": 8.8
+        },
+        {
+            "last_digits": "4556",
+            "total_spent": 1675.8,
+            "cashback": 16.76
+        }
+    ],
+    "top_transactions": [
+        {
+            "date": "01.05.2021",
+            "amount": -1675.8,
+            "category": "Ж/д билеты",
+            "description": "РЖД"
+        },
+        {
+            "date": "01.05.2021",
+            "amount": -326.31,
+            "category": "Супермаркеты",
+            "description": "Магнит"
+        },
+        {
+            "date": "01.05.2021",
+            "amount": -149.97,
+            "category": "Супермаркеты",
+            "description": "Дикси"
+        },
+        {
+            "date": "01.05.2021",
+            "amount": -146.0,
+            "category": "Супермаркеты",
+            "description": "Колхоз"
+        },
+        {
+            "date": "01.05.2021",
+            "amount": -128.0,
+            "category": "Супермаркеты",
+            "description": "Колхоз"
+        }
+    ],
+    "currency_rates": [
+        {
+            "currency": "USD",
+            "rate": 77.27
+        },
+        {
+            "currency": "EUR",
+            "rate": 91.3
+        }
+    ],
+    "stock_prices": [
+        {
+            "stock": "OZON",
+            "price": 4702.0
+        },
+        {
+            "stock": "SBER",
+            "price": 314.14
+        },
+        {
+            "stock": "VKCO",
+            "price": 309.7
+        },
+        {
+            "stock": "VTBR",
+            "price": 86.09
+        },
+        {
+            "stock": "YDEX",
+            "price": 4752.0
+        }
+    ]
+}
