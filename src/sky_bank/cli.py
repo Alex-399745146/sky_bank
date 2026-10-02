@@ -17,6 +17,7 @@ from sky_bank.analytics import (
     STATUS_COLUMN,
     Overview,
     build_expenses_by_category,
+    build_expenses_by_weekday,
     build_overview,
     search_transactions,
 )
@@ -110,6 +111,46 @@ def render_category_report(
             title="[bold magenta]Sky Bank[/bold magenta]",
             subtitle=f"Валюта: {currency} · Статусы: {status_label}",
             border_style="magenta",
+        )
+    )
+
+
+def render_weekday_report(
+    report: pd.DataFrame,
+    currency: str,
+    include_failed: bool,
+) -> None:
+    """Отображает расходы по дням недели."""
+    status_label = "OK, FAILED" if include_failed else "OK"
+
+    table = Table(
+        title="Расходы по дням недели",
+        box=box.ROUNDED,
+        border_style="blue",
+        header_style="bold blue",
+    )
+    table.add_column("День недели", style="cyan")
+    table.add_column("Операций", justify="right")
+    table.add_column("Расходы", justify="right", style="red")
+    table.add_column("Средний расход", justify="right", style="yellow")
+
+    for _, weekday, operation_count, expenses, average_expense in report.itertuples(
+        index=False,
+        name=None,
+    ):
+        table.add_row(
+            weekday,
+            str(operation_count),
+            format_money(float(expenses), currency),
+            format_money(float(average_expense), currency),
+        )
+
+    console.print(
+        Panel.fit(
+            table,
+            title="[bold blue]Sky Bank[/bold blue]",
+            subtitle=f"Валюта: {currency} · Статусы: {status_label}",
+            border_style="blue",
         )
     )
 
@@ -294,6 +335,53 @@ def categories(
     render_category_report(
         report,
         currency.upper(),
+        include_failed=include_failed,
+    )
+
+
+@app.command()
+def weekdays(
+    file_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Путь к Excel-файлу с банковскими операциями.",
+    ),
+    currency: str = typer.Option(
+        "RUB",
+        "--currency",
+        "-c",
+        help="Валюта операций для отчёта.",
+    ),
+    include_failed: bool = typer.Option(
+        False,
+        "--include-failed",
+        help="Учитывать операции со статусом FAILED.",
+    ),
+) -> None:
+    """Показывает расходы по дням недели."""
+    try:
+        transactions = pd.read_excel(file_path)
+        report = build_expenses_by_weekday(
+            transactions,
+            currency=currency.upper(),
+            include_failed=include_failed,
+        )
+    except (OSError, ValueError) as error:
+        console.print(
+            Panel(
+                str(error),
+                title="[bold red]Ошибка анализа[/bold red]",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(code=1) from error
+
+    render_weekday_report(
+        report,
+        currency=currency.upper(),
         include_failed=include_failed,
     )
 

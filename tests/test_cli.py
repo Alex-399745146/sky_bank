@@ -117,3 +117,26 @@ def test_search_command_displays_message_when_nothing_found(
     assert result.exit_code == 0
     assert "Ничего не найдено" in result.stdout
     assert "операций не найдено" in result.stdout
+
+
+def test_weekdays_command_displays_weekday_report(
+    sample_transactions: pd.DataFrame,
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Команда weekdays отображает расходы по дням недели."""
+    excel_file = tmp_path / "operations.xlsx"
+    excel_file.touch()
+
+    monkeypatch.setattr(
+        "sky_bank.cli.pd.read_excel",
+        lambda _: sample_transactions.copy(),
+    )
+
+    result = runner.invoke(app, ["weekdays", str(excel_file)])
+
+    assert result.exit_code == 0
+    assert "Расходы по дням недели" in result.stdout
+    assert "Воскресенье" in result.stdout
+    assert "1" in result.stdout
+    assert "100.00 RUB" in result.stdout
