@@ -8,6 +8,7 @@ import pytest
 
 from sky_bank.analytics import (
     build_expenses_by_category,
+    build_expenses_by_weekday,
     build_overview,
     search_transactions,
 )
@@ -141,3 +142,37 @@ def test_search_transactions_rejects_empty_query(
     """Поиск не принимает пустой запрос."""
     with pytest.raises(ValueError, match="не должен быть пустым"):
         search_transactions(sample_transactions, "   ")
+
+
+def test_build_expenses_by_weekday_returns_all_weekdays(
+    sample_transactions: pd.DataFrame,
+) -> None:
+    """Отчёт содержит все дни недели и учитывает успешные RUB-расходы."""
+    report = build_expenses_by_weekday(sample_transactions)
+
+    assert len(report) == 7
+
+    sunday = report.loc[report["weekday"] == "Воскресенье"].iloc[0]
+    assert sunday["operation_count"] == 1
+    assert sunday["expenses"] == 100.0
+    assert sunday["average_expense"] == 100.0
+
+    tuesday = report.loc[report["weekday"] == "Вторник"].iloc[0]
+    assert tuesday["operation_count"] == 0
+    assert tuesday["expenses"] == 0.0
+    assert tuesday["average_expense"] == 0.0
+
+
+def test_build_expenses_by_weekday_can_include_failed_transactions(
+    sample_transactions: pd.DataFrame,
+) -> None:
+    """Отчёт включает FAILED-расходы только по явной опции."""
+    report = build_expenses_by_weekday(
+        sample_transactions,
+        include_failed=True,
+    )
+
+    thursday = report.loc[report["weekday"] == "Четверг"].iloc[0]
+
+    assert thursday["operation_count"] == 1
+    assert thursday["expenses"] == 500.0

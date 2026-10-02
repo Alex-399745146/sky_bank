@@ -15,6 +15,15 @@ CATEGORY_COLUMN = "Категория"
 
 SUCCESS_STATUS = "OK"
 UNCATEGORIZED_LABEL = "Без категории"
+WEEKDAY_NAMES = {
+    0: "Понедельник",
+    1: "Вторник",
+    2: "Среда",
+    3: "Четверг",
+    4: "Пятница",
+    5: "Суббота",
+    6: "Воскресенье",
+}
 
 REQUIRED_COLUMNS = {
     OPERATION_DATE_COLUMN,
@@ -206,3 +215,61 @@ def search_transactions(
     ).head(limit)
 
     return result.reset_index(drop=True)
+
+
+def build_expenses_by_weekday(
+    transactions: pd.DataFrame,
+    currency: str = "RUB",
+    include_failed: bool = False,
+) -> pd.DataFrame:
+    """Возвращает расходы и средний чек по дням недели."""
+    filtered_transactions = _filter_transactions(
+        transactions,
+        currency=currency,
+        include_failed=include_failed,
+    )
+
+    expenses = filtered_transactions[
+        filtered_transactions[PAYMENT_AMOUNT_COLUMN] < 0
+    ].copy()
+
+    if expenses.empty:
+        raise ValueError("Не найдено расходных операций для выбранных параметров.")
+
+    expenses["weekday_number"] = expenses[OPERATION_DATE_COLUMN].dt.weekday
+
+    grouped_expenses = (
+        expenses.groupby("weekday_number", as_index=False)
+        .agg(
+            operation_count=(PAYMENT_AMOUNT_COLUMN, "size"),
+            expenses=(PAYMENT_AMOUNT_COLUMN, "sum"),
+        )
+        .assign(expenses=lambda frame: frame["expenses"].abs())
+    )
+
+    weekdays = pd.DataFrame({"weekday_number": range(7)})
+
+    report = (
+        weekdays.merge(grouped_expenses, on="weekday_number", how="left")
+        .fillna({"operation_count": 0, "expenses": 0.0})
+        .assign(
+            operation_count=lambda frame: frame["operation_count"].astype(int),
+            weekday=lambda frame: frame["weekday_number"].map(WEEKDAY_NAMES),
+        )
+    )
+
+    report["average_expense"] = (
+        report["expenses"]
+        .div(report["operation_count"])
+        .fillna(0.0)
+    )
+
+    return report[
+        [
+            "weekday_number",
+            "weekday",
+            "operation_count",
+            "expenses",
+            "average_expense",
+        ]
+    ]
