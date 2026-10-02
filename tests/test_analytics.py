@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from sky_bank.analytics import build_overview
+from sky_bank.analytics import build_overview, build_expenses_by_category
 
 
 def test_build_overview_uses_successful_ruble_transactions(
@@ -53,3 +53,43 @@ def test_build_overview_raises_error_for_missing_required_column() -> None:
 
     with pytest.raises(ValueError, match="обязательные столбцы"):
         build_overview(transactions)
+
+def test_build_expenses_by_category_returns_only_expenses(
+        sample_transactions: pd.DataFrame,
+) -> None:
+    """Отчёт возвращает только успешные расходы выбранной валюты."""
+    report = build_expenses_by_category(sample_transactions)
+
+    assert report.to_dict("records") == [
+        {
+            "category": "Продукты",
+            "expenses": 100.0,
+        }
+    ]
+
+def test_build_expenses_by_category_can_include_failed_transactions(
+        sample_transactions: pd.DataFrame,
+) -> None:
+    """Отчёт добавляет FAILED-расходы по явной опции."""
+    report = build_expenses_by_category(
+        sample_transactions,
+        include_failed=True,
+    )
+
+    assert report.to_dict("records") == [
+        {
+            "category": "Транспорт",
+            "expenses": 500.0,
+        },
+        {
+            "category": "Продукты",
+            "expenses": 100.0,
+        },
+    ]
+
+def test_build_expenses_by_category_rejects_non_positive_limit(
+        sample_transactions: pd.DataFrame,
+) -> None:
+    """Отчёт не принимает нулевой или отрицательный лимит."""
+    with pytest.raises(ValueError, match="больше нуля"):
+        build_expenses_by_category(sample_transactions, limit=0)

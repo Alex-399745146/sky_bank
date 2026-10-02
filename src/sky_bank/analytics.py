@@ -14,6 +14,7 @@ PAYMENT_CURRENCY_COLUMN = "Валюта платежа"
 CATEGORY_COLUMN = "Категория"
 
 SUCCESS_STATUS = "OK"
+UNCATEGORIZED_LABEL = "Без категории"
 
 REQUIRED_COLUMNS = {
     OPERATION_DATE_COLUMN,
@@ -40,12 +41,12 @@ class Overview:
     balance: float
 
 
-def build_overview(
+def _filter_transactions(
     transactions: pd.DataFrame,
-    currency: str = "RUB",
-    include_failed: bool = False,
-) -> Overview:
-    """Формирует сводку по операциям указанной валюты."""
+    currency: str,
+    include_failed: bool,
+) -> pd.DataFrame:
+    """Проверяет, нормализует и фильтрует операции для аналитики."""
     missing_columns = REQUIRED_COLUMNS.difference(transactions.columns)
 
     if missing_columns:
@@ -85,6 +86,21 @@ def build_overview(
             "Проверьте параметр валюты или включите неуспешные операции."
         )
 
+    return filtered_transactions
+
+
+def build_overview(
+    transactions: pd.DataFrame,
+    currency: str = "RUB",
+    include_failed: bool = False,
+) -> Overview:
+    """Формирует сводку по операциям указанной валюты."""
+    filtered_transactions = _filter_transactions(
+        transactions,
+        currency=currency,
+        include_failed=include_failed,
+    )
+
     amounts = filtered_transactions[PAYMENT_AMOUNT_COLUMN]
 
     income = float(amounts[amounts > 0].sum())
@@ -102,3 +118,46 @@ def build_overview(
         expenses=expenses,
         balance=balance,
     )
+
+
+def build_expenses_by_category(
+    transactions: pd.DataFrame,
+    currency: str = "RUB",
+    include_failed: bool = False,
+    limit: int = 10,
+) -> pd.DataFrame:
+    """Возвращает крупнейшие категории расходов."""
+    if limit < 1:
+        raise ValueError("Количество категорий должно быть больше нуля.")
+
+    filtered_transactions = _filter_transactions(
+        transactions,
+        currency=currency,
+        include_failed=include_failed,
+    )
+
+    expenses = filtered_transactions[
+        filtered_transactions[PAYMENT_AMOUNT_COLUMN] < 0
+    ].copy()
+
+    if expenses.empty:
+        raise ValueError("Не найдено расходных операций для выбранных параметров.")
+
+    expenses[CATEGORY_COLUMN] = expenses[CATEGORY_COLUMN].fillna(UNCATEGORIZED_LABEL)
+
+    report = (
+        expenses.groupby(CATEGORY_COLUMN, as_index=False)[PAYMENT_AMOUNT_COLUMN]
+        .sum()
+        .assign(**{PAYMENT_AMOUNT_COLUMN: lambda frame: frame[PAYMENT_AMOUNT_COLUMN].abs()})
+        .sort_values(PAYMENT_AMOUNT_COLUMN, ascending=False)
+        .head(limit)
+        .rename(
+            columns={
+                CATEGORY_COLUMN: "category",
+                PAYMENT_AMOUNT_COLUMN: "expenses",
+            }
+        )
+        .reset_index(drop=True)
+    )
+
+    return report
