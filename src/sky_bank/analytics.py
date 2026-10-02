@@ -161,3 +161,48 @@ def build_expenses_by_category(
     )
 
     return report
+
+
+def search_transactions(
+    transactions: pd.DataFrame,
+    query: str,
+    currency: str = "RUB",
+    include_failed: bool = False,
+    category: str | None = None,
+    limit: int = 20,
+) -> pd.DataFrame:
+    """Ищет операции по тексту описания."""
+    if not query.strip():
+        raise ValueError("Поисковый запрос не должен быть пустым.")
+
+    if limit < 1:
+        raise ValueError("Количество операций должно быть больше нуля.")
+
+    if "Описание" not in transactions.columns:
+        raise ValueError("В Excel-файле отсутствует обязательный столбец: Описание")
+
+    filtered_transactions = _filter_transactions(
+        transactions,
+        currency=currency,
+        include_failed=include_failed,
+    )
+
+    descriptions = filtered_transactions["Описание"].fillna("").astype(str)
+
+    result = filtered_transactions[
+        descriptions.str.contains(query.strip(), case=False, regex=False)
+    ].copy()
+
+    if category is not None:
+        categories = result[CATEGORY_COLUMN].fillna("").astype(str)
+
+        result = result[
+            categories.str.contains(category.strip(), case=False, regex=False)
+        ].copy()
+
+    result = result.sort_values(
+        by=OPERATION_DATE_COLUMN,
+        ascending=False,
+    ).head(limit)
+
+    return result.reset_index(drop=True)

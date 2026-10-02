@@ -6,7 +6,11 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from sky_bank.analytics import build_overview, build_expenses_by_category
+from sky_bank.analytics import (
+    build_expenses_by_category,
+    build_overview,
+    search_transactions,
+)
 
 
 def test_build_overview_uses_successful_ruble_transactions(
@@ -93,3 +97,47 @@ def test_build_expenses_by_category_rejects_non_positive_limit(
     """Отчёт не принимает нулевой или отрицательный лимит."""
     with pytest.raises(ValueError, match="больше нуля"):
         build_expenses_by_category(sample_transactions, limit=0)
+
+
+def test_search_transactions_finds_description_case_insensitively(
+    sample_transactions: pd.DataFrame,
+) -> None:
+    """Поиск находит операции по описанию без учёта регистра."""
+    sample_transactions.loc[0, "Описание"] = "Магнит у дома"
+    sample_transactions.loc[1, "Описание"] = "Пополнение счёта"
+    sample_transactions.loc[2, "Описание"] = "Магнит у дома"
+    sample_transactions.loc[3, "Описание"] = "Магнит в Китае"
+
+    result = search_transactions(sample_transactions, "МАГНИТ")
+
+    assert len(result) == 1
+    assert result.iloc[0]["Описание"] == "Магнит у дома"
+    assert result.iloc[0]["Статус"] == "OK"
+    assert result.iloc[0]["Валюта платежа"] == "RUB"
+
+
+def test_search_transactions_can_filter_by_category(
+    sample_transactions: pd.DataFrame,
+) -> None:
+    """Поиск ограничивает результаты указанной категорией."""
+    sample_transactions.loc[0, "Описание"] = "Покупка"
+    sample_transactions.loc[1, "Описание"] = "Покупка"
+    sample_transactions.loc[2, "Описание"] = "Покупка"
+    sample_transactions.loc[3, "Описание"] = "Покупка"
+
+    result = search_transactions(
+        sample_transactions,
+        "покупка",
+        category="Пополнение",
+    )
+
+    assert len(result) == 1
+    assert result.iloc[0]["Категория"] == "Пополнение"
+
+
+def test_search_transactions_rejects_empty_query(
+    sample_transactions: pd.DataFrame,
+) -> None:
+    """Поиск не принимает пустой запрос."""
+    with pytest.raises(ValueError, match="не должен быть пустым"):
+        search_transactions(sample_transactions, "   ")
