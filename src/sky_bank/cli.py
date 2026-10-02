@@ -10,7 +10,16 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from sky_bank.analytics import Overview, build_expenses_by_category, build_overview
+from sky_bank.analytics import (
+    CATEGORY_COLUMN,
+    OPERATION_DATE_COLUMN,
+    PAYMENT_AMOUNT_COLUMN,
+    STATUS_COLUMN,
+    Overview,
+    build_expenses_by_category,
+    build_overview,
+    search_transactions,
+)
 
 app = typer.Typer(
     name="sky-bank",
@@ -101,6 +110,70 @@ def render_category_report(
             title="[bold magenta]Sky Bank[/bold magenta]",
             subtitle=f"Валюта: {currency} · Статусы: {status_label}",
             border_style="magenta",
+        )
+    )
+
+
+def render_search_results(
+    results: pd.DataFrame,
+    query: str,
+    currency: str,
+    include_failed: bool,
+) -> None:
+    """Отображает найденные операции в терминале."""
+    if results.empty:
+        console.print(
+            Panel.fit(
+                f"По запросу [bold yellow]{query}[/bold yellow] операций не найдено.",
+                title="[bold yellow]Ничего не найдено[/bold yellow]",
+                border_style="yellow",
+            )
+        )
+        return
+
+    status_label = "OK, FAILED" if include_failed else "OK"
+
+    table = Table(
+        title=f"Найдено операций: {len(results)}",
+        box=box.ROUNDED,
+        border_style="green",
+        header_style="bold green",
+    )
+    table.add_column("Дата", style="cyan")
+    table.add_column("Описание")
+    table.add_column("Категория")
+    table.add_column("Статус", justify="center")
+    table.add_column("Сумма", justify="right")
+
+    display_columns = [
+        OPERATION_DATE_COLUMN,
+        "Описание",
+        CATEGORY_COLUMN,
+        STATUS_COLUMN,
+        PAYMENT_AMOUNT_COLUMN,
+    ]
+
+    for operation_date, description, category, status, amount in results[
+        display_columns
+    ].itertuples(index=False, name=None):
+        category_text = "Без категории" if pd.isna(category) else str(category)
+        status_style = "green" if status == "OK" else "yellow"
+        amount_style = "green" if amount > 0 else "red"
+
+        table.add_row(
+            operation_date.strftime("%d.%m.%Y %H:%M"),
+            str(description),
+            category_text,
+            f"[{status_style}]{status}[/{status_style}]",
+            f"[{amount_style}]{format_money(float(amount), currency)}[/{amount_style}]",
+        )
+
+    console.print(
+        Panel.fit(
+            table,
+            title="[bold green]Sky Bank[/bold green]",
+            subtitle=f"Запрос: {query} · Валюта: {currency} · Статусы: {status_label}",
+            border_style="green",
         )
     )
 
@@ -221,5 +294,72 @@ def categories(
     render_category_report(
         report,
         currency.upper(),
+        include_failed=include_failed,
+    )
+
+
+@app.command()
+def search(
+    file_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Путь к Excel-файлу с банковскими операциями.",
+    ),
+    query: str = typer.Argument(
+        ...,
+        help="Текст для поиска в описании операций.",
+    ),
+    category: str | None = typer.Option(
+        None,
+        "--category",
+        help="Дополнительный фильтр по категории.",
+    ),
+    limit: int = typer.Option(
+        20,
+        "--limit",
+        "-l",
+        min=1,
+        help="Максимальное количество операций в результате.",
+    ),
+    currency: str = typer.Option(
+        "RUB",
+        "--currency",
+        "-c",
+        help="Валюта операций для поиска.",
+    ),
+    include_failed: bool = typer.Option(
+        False,
+        "--include-failed",
+        help="Учитывать операции со статусом FAILED.",
+    ),
+) -> None:
+    """Ищет операции по тексту в описании."""
+    try:
+        transactions = pd.read_excel(file_path)
+        results = search_transactions(
+            transactions,
+            query=query,
+            currency=currency.upper(),
+            include_failed=include_failed,
+            category=category,
+            limit=limit,
+        )
+    except (OSError, ValueError) as error:
+        console.print(
+            Panel(
+                str(error),
+                title="[bold red]Ошибка поиска[/bold red]",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(code=1) from error
+
+    render_search_results(
+        results,
+        query=query,
+        currency=currency.upper(),
         include_failed=include_failed,
     )

@@ -59,3 +59,61 @@ def test_categories_command_displays_expense_report(
     assert "Топ расходов по категориям" in result.stdout
     assert "Продукты" in result.stdout
     assert "100.00 RUB" in result.stdout
+
+
+def test_search_command_displays_matching_operations(
+    sample_transactions: pd.DataFrame,
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Команда search отображает найденные операции."""
+    sample_transactions["Описание"] = [
+        "Магнит у дома",
+        "Пополнение счёта",
+        "Магнит у дома",
+        "Магнит в Китае",
+    ]
+
+    excel_file = tmp_path / "operations.xlsx"
+    excel_file.touch()
+
+    monkeypatch.setattr(
+        "sky_bank.cli.pd.read_excel",
+        lambda _: sample_transactions.copy(),
+    )
+
+    result = runner.invoke(app, ["search", str(excel_file), "магнит"])
+
+    assert result.exit_code == 0
+    assert "Найдено операций: 1" in result.stdout
+    assert "Магнит у дома" in result.stdout
+    assert "Продукты" in result.stdout
+    assert "-100.00 RUB" in result.stdout
+
+
+def test_search_command_displays_message_when_nothing_found(
+    sample_transactions: pd.DataFrame,
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Команда search сообщает, если совпадения отсутствуют."""
+    sample_transactions["Описание"] = [
+        "Магнит у дома",
+        "Пополнение счёта",
+        "Магнит у дома",
+        "Магнит в Китае",
+    ]
+
+    excel_file = tmp_path / "operations.xlsx"
+    excel_file.touch()
+
+    monkeypatch.setattr(
+        "sky_bank.cli.pd.read_excel",
+        lambda _: sample_transactions.copy(),
+    )
+
+    result = runner.invoke(app, ["search", str(excel_file), "несуществующий запрос"])
+
+    assert result.exit_code == 0
+    assert "Ничего не найдено" in result.stdout
+    assert "операций не найдено" in result.stdout
