@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from sky_bank.analytics import Overview, build_overview
+from sky_bank.analytics import Overview, build_expenses_by_category, build_overview
 
 app = typer.Typer(
     name="sky-bank",
@@ -67,6 +67,40 @@ def render_overview(
             title="[bold cyan]Sky Bank[/bold cyan]",
             subtitle=f"Статусы: {status_label}",
             border_style="cyan",
+        )
+    )
+
+
+def render_category_report(
+    report: pd.DataFrame,
+    currency: str,
+    include_failed: bool = False,
+) -> None:
+    """Отображает отчёт расходов по категориям."""
+    status_label = "OK, FAILED" if include_failed else "OK"
+    table = Table(
+        title="Топ расходов по категориям",
+        box=box.ROUNDED,
+        border_style="magenta",
+        header_style="bold magenta",
+    )
+    table.add_column("№", justify="right", style="dim", width=3)
+    table.add_column("Категория", style="cyan")
+    table.add_column("Расходы", justify="right", style="red")
+
+    for index, row in enumerate(report.itertuples(index=False), start=1):
+        table.add_row(
+            str(index),
+            row.category,
+            format_money(row.expenses, currency),
+        )
+
+    console.print(
+        Panel.fit(
+            table,
+            title="[bold magenta]Sky Bank[/bold magenta]",
+            subtitle=f"Валюта: {currency} · Статусы: {status_label}",
+            border_style="magenta",
         )
     )
 
@@ -132,5 +166,60 @@ def overview(
 
     render_overview(
         overview_data,
+        include_failed=include_failed,
+    )
+
+
+@app.command()
+def categories(
+    file_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Путь к Excel-файлу с банковскими операциями.",
+    ),
+    limit: int = typer.Option(
+        10,
+        "--limit",
+        "-l",
+        min=1,
+        help="Максимальное количество категорий в отчёте.",
+    ),
+    currency: str = typer.Option(
+        "RUB",
+        "--currency",
+        "-c",
+        help="Валюта операций для отчёта.",
+    ),
+    include_failed: bool = typer.Option(
+        False,
+        "--include-failed",
+        help="Учитывать операции со статусом FAILED.",
+    ),
+) -> None:
+    """Показывает крупнейшие категории расходов."""
+    try:
+        transactions = pd.read_excel(file_path)
+        report = build_expenses_by_category(
+            transactions,
+            currency=currency.upper(),
+            include_failed=include_failed,
+            limit=limit,
+        )
+    except (OSError, ValueError) as error:
+        console.print(
+            Panel(
+                str(error),
+                title="[bold red]Ошибка анализа[/bold red]",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(code=1) from error
+
+    render_category_report(
+        report,
+        currency.upper(),
         include_failed=include_failed,
     )
