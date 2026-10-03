@@ -59,7 +59,7 @@ Sky Bank CLI читает банковские операции через `pand
 ### 1. Клонировать репозиторий
 
 ```bash
-git clone [https://github.com/Alex-399745146/sky_bank.git](https://github.com/Alex-399745146/sky_bank.git)
+git clone https://github.com/Alex-399745146/sky_bank.git
 cd sky_bank
 ```
 
@@ -162,7 +162,7 @@ poetry run sky-bank overview data/operations.xlsx --currency CNY
 <div align="center">
   <img
     src="docs/images/cli-overview-cny.jpg"
-    alt="Сводка банковских операций в RUB"
+    alt="Сводка банковских операций в CNY"
     width="900"
   />
 </div>
@@ -426,14 +426,3 @@ poetry run mypy src
 ```
 
 ---
-
-## Дальнейшее развитие
-
-- Добавить CLI-команду экспорта Excel: `sky-bank export-excel`
-- Добавить JSON-экспорт аналитических данных
-- Добавить фильтрацию по периоду дат
-- Добавить поиск по нескольким полям
-- Добавить прогресс-бар Rich при обработке крупных файлов
-- Добавить GitHub Actions для автоматического запуска тестов и линтеров
-- Добавить скриншоты команд в README
-- Добавить Docker-конфигурацию
