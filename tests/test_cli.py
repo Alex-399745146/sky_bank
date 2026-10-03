@@ -1,12 +1,15 @@
 # tests/test_cli.py
 """Тесты команд терминального интерфейса."""
 
+from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
 from typer.testing import CliRunner
 
 from sky_bank.cli import app
+from sky_bank.exchange_rates import CurrencyNotFoundError, ExchangeRate
 
 runner = CliRunner()
 
@@ -172,3 +175,57 @@ def test_export_excel_command_creates_report(
     assert output_path.exists()
     assert "Экспорт завершён" in result.stdout
     assert "Отчёт успешно сохранён" in result.stdout
+
+
+def test_rates_command_displays_exchange_rates(monkeypatch) -> None:
+    """Команда rates отображает официальные курсы валют."""
+    expected_rates = [
+        ExchangeRate(
+            code="CNY",
+            name="Китайских юаней",
+            rate=Decimal("11.43"),
+            rate_date=datetime(2026, 10, 3),
+        ),
+        ExchangeRate(
+            code="USD",
+            name="Доллар США",
+            rate=Decimal("80.25"),
+            rate_date=datetime(2026, 10, 3),
+        ),
+    ]
+
+    monkeypatch.setattr(
+        "sky_bank.cli.get_exchange_rates",
+        lambda _: expected_rates,
+    )
+
+    result = runner.invoke(app, ["rates", "CNY", "USD"])
+
+    assert result.exit_code == 0
+    assert "Официальные курсы валют" in result.stdout
+    assert "Источник: Банк России" in result.stdout
+    assert "CNY" in result.stdout
+    assert "Китайских юаней" in result.stdout
+    assert "11,4300" in result.stdout
+    assert "USD" in result.stdout
+    assert "Доллар США" in result.stdout
+    assert "80,2500" in result.stdout
+    assert "03.10.2026" in result.stdout
+
+
+def test_rates_command_displays_api_error(monkeypatch) -> None:
+    """Команда rates показывает понятную ошибку внешнего API."""
+
+    def raise_currency_error(_: list[str]) -> list[ExchangeRate]:
+        raise CurrencyNotFoundError("Курсы для валют не найдены: ABC.")
+
+    monkeypatch.setattr(
+        "sky_bank.cli.get_exchange_rates",
+        raise_currency_error,
+    )
+
+    result = runner.invoke(app, ["rates", "ABC"])
+
+    assert result.exit_code == 1
+    assert "Ошибка получения курсов" in result.stdout
+    assert "Курсы для валют не найдены: ABC." in result.stdout

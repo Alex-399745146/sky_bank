@@ -14,6 +14,7 @@ from rich.table import Table
 from sky_bank.analytics import (CATEGORY_COLUMN, OPERATION_DATE_COLUMN, PAYMENT_AMOUNT_COLUMN, STATUS_COLUMN, Overview,
                                 build_expenses_by_category, build_expenses_by_weekday, build_overview,
                                 search_transactions)
+from sky_bank.exchange_rates import DEFAULT_CURRENCIES, ExchangeRateError, get_exchange_rates
 from sky_bank.exporters import export_analysis_report
 
 app = typer.Typer(
@@ -231,6 +232,65 @@ def version() -> None:
             f"[bold cyan]Sky Bank[/bold cyan]\nВерсия: [green]{project_version}[/green]",
             title="Информация",
             border_style="cyan",
+        )
+    )
+
+
+@app.command()
+def rates(
+    currencies: list[str] | None = typer.Argument(
+        None,
+        metavar="[CURRENCY]...",
+        help="Коды валют для запроса, например: CNY USD EUR.",
+    ),
+) -> None:
+    """Показывает официальные курсы валют Банка России."""
+    requested_currencies = currencies or list(DEFAULT_CURRENCIES)
+
+    try:
+        with console.status(
+            "[bold blue]Получаем официальные курсы Банка России...[/bold blue]",
+            spinner="dots",
+            spinner_style="blue",
+        ):
+            exchange_rates = get_exchange_rates(requested_currencies)
+    except (ExchangeRateError, ValueError) as error:
+        console.print(
+            Panel(
+                str(error),
+                title="[bold red]Ошибка получения курсов[/bold red]",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(code=1) from error
+
+    table = Table(
+        title="Официальные курсы валют",
+        box=box.ROUNDED,
+        border_style="blue",
+        header_style="bold blue",
+    )
+    table.add_column("Код", style="cyan", justify="center")
+    table.add_column("Валюта")
+    table.add_column("Курс за 1 единицу, RUB", justify="right", style="green")
+    table.add_column("Дата ЦБ РФ", justify="center")
+
+    for exchange_rate in exchange_rates:
+        formatted_rate = f"{exchange_rate.rate:.4f}".replace(".", ",")
+
+        table.add_row(
+            exchange_rate.code,
+            exchange_rate.name,
+            formatted_rate,
+            exchange_rate.rate_date.strftime("%d.%m.%Y"),
+        )
+
+    console.print(
+        Panel.fit(
+            table,
+            title="[bold blue]Sky Bank[/bold blue]",
+            subtitle="Источник: Банк России",
+            border_style="blue",
         )
     )
 
