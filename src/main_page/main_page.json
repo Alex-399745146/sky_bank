@@ -1,5 +1,5 @@
 {
-    "greeting": "Добрый день",
+    "greeting": "Доброй ночи",
     "cards": [
         {
             "last_digits": "7197",
@@ -47,35 +47,33 @@
     "currency_rates": [
         {
             "currency": "USD",
-            "rate": 77.27
+            "rate": 83.48
         },
         {
             "currency": "EUR",
-            "rate": 91.3
+            "rate": 94.32
         }
     ],
     "stock_prices": [
-        [
-            {
-                "stock": "OZON",
-                "price": 4707.0
-            },
-            {
-                "stock": "SBER",
-                "price": 314.08
-            },
-            {
-                "stock": "VKCO",
-                "price": 310.2
-            },
-            {
-                "stock": "VTBR",
-                "price": 86.3
-            },
-            {
-                "stock": "YDEX",
-                "price": 4768.5
-            }
-        ]
+        {
+            "stock": "OZON",
+            "price": 3150.0
+        },
+        {
+            "stock": "SBER",
+            "price": 275.27
+        },
+        {
+            "stock": "VKCO",
+            "price": 112.7
+        },
+        {
+            "stock": "VTBR",
+            "price": 51.99
+        },
+        {
+            "stock": "YDEX",
+            "price": 3604.5
+        }
     ]
 }
