@@ -2,25 +2,28 @@
 [project]
 name = "sky-bank"
 version = "0.1.0"
-description = "Учебный курсовой проект"
+description = "CLI-приложение для анализа банковских операций"
 authors = [
-    {name = "Alexsandr Bachevskiy",email = "bachevskiiaa@gmail.com"}
+    {name = "Alexsandr Bachevskiy", email = "bachevskiiaa@gmail.com"}
 ]
 readme = "README.md"
-#requires-python = ">=3.13"
-requires-python = ">=3.11,<4.0.0" # из-за конфликта c библ. cbrapi
+requires-python = ">=3.11,<4.0.0"
 dependencies = [
-#    "pandas[excel] (>=3.0.0,<4.0.0)",
     "requests (>=2.32.5,<3.0.0)",
     "apimoex (>=1.4.0,<2.0.0)",
     "numpy (>=2.4.2,<3.0.0)",
-    "pandas >=2.3.2",               # вместо ">=3.0.1,<4.0.0"
+    "pandas >=2.3.2",
     "openpyxl (>=3.1.5,<4.0.0)",
-    "cbrapi (>=0.1.6,<0.2.0)"
+    "cbrapi (>=0.1.6,<0.2.0)",
+    "typer (>=0.27.2,<0.28.0)",
+    "rich (>=15.0.0,<16.0.0)"
 ]
 
 [tool.poetry]
 packages = [{include = "sky_bank", from = "src"}]
+
+[project.scripts]
+sky-bank = "sky_bank.cli:app"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -36,22 +39,29 @@ lint = [
 dev = [
     "python-dotenv (>=1.2.1,<2.0.0)",
     "pytest (>=9.0.2,<10.0.0)",
-    "pytest-cov (>=7.0.0,<8.0.0)"
+    "pytest-cov (>=7.0.0,<8.0.0)",
+    "types-openpyxl (>=3.1.5.20260827,<4.0.0.0)"
 ]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.11"
+mypy_path = "src"
+namespace_packages = true
+explicit_package_bases = true
+
 disallow_untyped_defs = true
 no_implicit_optional = true
+check_untyped_defs = true
 warn_return_any = true
-check_untyped_defs = false
-strict = false
+warn_unused_ignores = true
 warn_unreachable = false
+
+strict = false
 exclude = [".venv", "__pycache__", ".git"]
 
 [[tool.mypy.overrides]]
-module = ['tests.*'] # для какого модуля
-allow_untyped_defs = true # переопределение настройки
+module = ['tests.*']
+allow_untyped_defs = true
 
 [tool.black]
 line-length = 119
