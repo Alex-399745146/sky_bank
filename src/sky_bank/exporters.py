@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 
 from sky_bank.analytics import Overview
 
@@ -14,7 +15,7 @@ HEADER_FONT = Font(color="FFFFFF", bold=True)
 HEADER_ALIGNMENT = Alignment(horizontal="center", vertical="center")
 
 
-def _format_worksheet(worksheet) -> None:
+def _format_worksheet(worksheet: Worksheet) -> None:
     """Оформляет заголовки, ширину столбцов и фильтры листа."""
     worksheet.freeze_panes = "A2"
     worksheet.auto_filter.ref = worksheet.dimensions
@@ -25,11 +26,13 @@ def _format_worksheet(worksheet) -> None:
         cell.alignment = HEADER_ALIGNMENT
 
     for column_cells in worksheet.columns:
-        max_length = max(
-            len(str(cell.value)) if cell.value is not None else 0
-            for cell in column_cells
-        )
-        column_letter = get_column_letter(column_cells[0].column)
+        max_length = max(len(str(cell.value)) if cell.value is not None else 0 for cell in column_cells)
+
+        column_index = column_cells[0].column
+        if column_index is None:
+            continue
+
+        column_letter = get_column_letter(column_index)
         worksheet.column_dimensions[column_letter].width = min(max_length + 2, 40)
 
 
@@ -116,16 +119,16 @@ def export_analysis_report(
                 summary_worksheet.cell(
                     row=row_number,
                     column=2,
-                ).number_format = '#,##0.00'
+                ).number_format = "#,##0.00"
 
         categories_worksheet = workbook["Категории"]
         weekdays_worksheet = workbook["Дни недели"]
 
         for row in categories_worksheet.iter_rows(min_row=2, min_col=2, max_col=2):
-            row[0].number_format = '#,##0.00'
+            row[0].number_format = "#,##0.00"
 
         for row in weekdays_worksheet.iter_rows(min_row=2, min_col=3, max_col=4):
             for cell in row:
-                cell.number_format = '#,##0.00'
+                cell.number_format = "#,##0.00"
 
     return output_path

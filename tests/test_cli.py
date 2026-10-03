@@ -13,7 +13,7 @@ runner = CliRunner()
 
 def test_overview_command_displays_summary(
     sample_transactions: pd.DataFrame,
-    tmp_path: Path, # Создание временной тестовой папки.
+    tmp_path: Path,  # Создание временной тестовой папки.
     monkeypatch,
 ) -> None:
     """Команда overview отображает сводку операций."""

@@ -2,6 +2,7 @@
 
 from importlib.metadata import version as get_package_version
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 import typer
@@ -10,17 +11,9 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from sky_bank.analytics import (
-    CATEGORY_COLUMN,
-    OPERATION_DATE_COLUMN,
-    PAYMENT_AMOUNT_COLUMN,
-    STATUS_COLUMN,
-    Overview,
-    build_expenses_by_category,
-    build_expenses_by_weekday,
-    build_overview,
-    search_transactions,
-)
+from sky_bank.analytics import (CATEGORY_COLUMN, OPERATION_DATE_COLUMN, PAYMENT_AMOUNT_COLUMN, STATUS_COLUMN, Overview,
+                                build_expenses_by_category, build_expenses_by_weekday, build_overview,
+                                search_transactions)
 from sky_bank.exporters import export_analysis_report
 
 app = typer.Typer(
@@ -100,10 +93,13 @@ def render_category_report(
     table.add_column("Расходы", justify="right", style="red")
 
     for index, row in enumerate(report.itertuples(index=False), start=1):
+        category = str(row.category)
+        expenses = cast(float, row.expenses)
+
         table.add_row(
             str(index),
-            row.category,
-            format_money(row.expenses, currency),
+            category,
+            format_money(expenses, currency),
         )
 
     console.print(
@@ -195,9 +191,9 @@ def render_search_results(
         PAYMENT_AMOUNT_COLUMN,
     ]
 
-    for operation_date, description, category, status, amount in results[
-        display_columns
-    ].itertuples(index=False, name=None):
+    for operation_date, description, category, status, amount in results[display_columns].itertuples(
+        index=False, name=None
+    ):
         category_text = "Без категории" if pd.isna(category) else str(category)
         status_style = "green" if status == "OK" else "yellow"
         amount_style = "green" if amount > 0 else "red"

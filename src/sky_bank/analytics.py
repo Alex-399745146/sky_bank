@@ -80,14 +80,10 @@ def _filter_transactions(
     if filtered_transactions[PAYMENT_AMOUNT_COLUMN].isna().any():
         raise ValueError("В Excel-файле найдены операции с некорректной суммой платежа.")
 
-    filtered_transactions = filtered_transactions[
-        filtered_transactions[PAYMENT_CURRENCY_COLUMN] == currency
-    ].copy()
+    filtered_transactions = filtered_transactions[filtered_transactions[PAYMENT_CURRENCY_COLUMN] == currency].copy()
 
     if not include_failed:
-        filtered_transactions = filtered_transactions[
-            filtered_transactions[STATUS_COLUMN] == SUCCESS_STATUS
-        ].copy()
+        filtered_transactions = filtered_transactions[filtered_transactions[STATUS_COLUMN] == SUCCESS_STATUS].copy()
 
     if filtered_transactions.empty:
         raise ValueError(
@@ -145,16 +141,14 @@ def build_expenses_by_category(
         include_failed=include_failed,
     )
 
-    expenses = filtered_transactions[
-        filtered_transactions[PAYMENT_AMOUNT_COLUMN] < 0
-    ].copy()
+    expenses = filtered_transactions[filtered_transactions[PAYMENT_AMOUNT_COLUMN] < 0].copy()
 
     if expenses.empty:
         raise ValueError("Не найдено расходных операций для выбранных параметров.")
 
     expenses[CATEGORY_COLUMN] = expenses[CATEGORY_COLUMN].fillna(UNCATEGORIZED_LABEL)
 
-    report = (
+    report: pd.DataFrame = (
         expenses.groupby(CATEGORY_COLUMN, as_index=False)[PAYMENT_AMOUNT_COLUMN]
         .sum()
         .assign(**{PAYMENT_AMOUNT_COLUMN: lambda frame: frame[PAYMENT_AMOUNT_COLUMN].abs()})
@@ -198,16 +192,12 @@ def search_transactions(
 
     descriptions = filtered_transactions["Описание"].fillna("").astype(str)
 
-    result = filtered_transactions[
-        descriptions.str.contains(query.strip(), case=False, regex=False)
-    ].copy()
+    result = filtered_transactions[descriptions.str.contains(query.strip(), case=False, regex=False)].copy()
 
     if category is not None:
         categories = result[CATEGORY_COLUMN].fillna("").astype(str)
 
-        result = result[
-            categories.str.contains(category.strip(), case=False, regex=False)
-        ].copy()
+        result = result[categories.str.contains(category.strip(), case=False, regex=False)].copy()
 
     result = result.sort_values(
         by=OPERATION_DATE_COLUMN,
@@ -229,9 +219,7 @@ def build_expenses_by_weekday(
         include_failed=include_failed,
     )
 
-    expenses = filtered_transactions[
-        filtered_transactions[PAYMENT_AMOUNT_COLUMN] < 0
-    ].copy()
+    expenses = filtered_transactions[filtered_transactions[PAYMENT_AMOUNT_COLUMN] < 0].copy()
 
     if expenses.empty:
         raise ValueError("Не найдено расходных операций для выбранных параметров.")
@@ -258,11 +246,7 @@ def build_expenses_by_weekday(
         )
     )
 
-    report["average_expense"] = (
-        report["expenses"]
-        .div(report["operation_count"])
-        .fillna(0.0)
-    )
+    report["average_expense"] = report["expenses"].div(report["operation_count"]).fillna(0.0)
 
     return report[
         [
