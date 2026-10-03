@@ -113,6 +113,14 @@ poetry run sky-bank <команда>
 poetry run sky-bank --help
 ```
 
+<div align="center">
+  <img
+    src="docs/images/cli-help.jpg"
+    alt="Справка Sky Bank CLI"
+    width="900"
+  />
+</div>
+
 ### Версия приложения
 
 ```bash
@@ -124,6 +132,14 @@ poetry run sky-bank version
 ```bash
 poetry run sky-bank overview data/operations.xlsx
 ```
+
+<div align="center">
+  <img
+    src="docs/images/cli-overview-rub.jpg"
+    alt="Сводка банковских операций в RUB"
+    width="900"
+  />
+</div>
 
 Команда показывает:
 
@@ -143,6 +159,14 @@ poetry run sky-bank overview data/operations.xlsx
 poetry run sky-bank overview data/operations.xlsx --currency CNY
 ```
 
+<div align="center">
+  <img
+    src="docs/images/cli-overview-cny.jpg"
+    alt="Сводка банковских операций в RUB"
+    width="900"
+  />
+</div>
+
 Учёт неуспешных операций:
 
 ```bash
@@ -161,6 +185,14 @@ poetry run sky-bank categories data/operations.xlsx
 poetry run sky-bank categories data/operations.xlsx --limit 5
 ```
 
+<div align="center">
+  <img
+    src="docs/images/cli-categories.jpg"
+    alt="Топ категорий расходов"
+    width="900"
+  />
+</div>
+
 Отчёт по операциям CNY:
 
 ```bash
@@ -178,6 +210,14 @@ poetry run sky-bank categories data/operations.xlsx --include-failed
 ```bash
 poetry run sky-bank weekdays data/operations.xlsx
 ```
+
+<div align="center">
+  <img
+    src="docs/images/cli-weekdays.jpg"
+    alt="Анализ расходов по дням недели"
+    width="900"
+  />
+</div>
 
 Отчёт показывает:
 
@@ -205,6 +245,14 @@ poetry run sky-bank search data/operations.xlsx "Магнит"
 ```bash
 poetry run sky-bank search data/operations.xlsx "Магнит" --limit 5
 ```
+
+<div align="center">
+  <img
+    src="docs/images/cli-search.jpg"
+    alt="Поиск банковских операций по описанию"
+    width="900"
+  />
+</div>
 
 Дополнительно отфильтровать по категории:
 
@@ -246,8 +294,18 @@ poetry run sky-bank search data/operations.xlsx "перевод" --currency CNY
 Проект содержит отдельный модуль экспорта:
 
 ```text
-src/sky_bank/exporters.py
+src/sky_bank/exporters.py data/operations.xlsx \
+  --output reports/sky_bank_rub_analysis.xlsx
 ```
+
+<div align="center">
+  <img
+    src="docs/images/cli-export-excel.jpg"
+    alt="Экспорт аналитического отчёта Sky Bank в Excel"
+    width="900"
+  />
+</div>
+
 
 Он формирует Excel-файл с тремя листами:
 
