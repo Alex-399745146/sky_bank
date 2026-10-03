@@ -293,8 +293,8 @@ poetry run sky-bank search data/operations.xlsx "перевод" --currency CNY
 
 Проект содержит отдельный модуль экспорта:
 
-```text
-src/sky_bank/exporters.py data/operations.xlsx \
+```bash
+poetry run sky-bank export-excel data/operations.xlsx \
   --output reports/sky_bank_rub_analysis.xlsx
 ```
 
