@@ -1,169 +1,381 @@
-# sky_bank
+# Sky Bank CLI
 
-## Приложение анализа транзакций
+Терминальное приложение для анализа банковских операций из Excel-выписки.
 
----
+Sky Bank CLI читает банковские операции через `pandas`, фильтрует их по валюте и статусу, формирует сводную аналитику, показывает расходы по категориям и дням недели, а также позволяет искать операции по описанию.
 
-`Моя курсовая работа по итогам прохождения учебных модулей в skypro. Банковский виджет фильтрующий банковские
-трансакции, релевантность данных через API, применение pandas, csv, logging и тд... Приложение будет генерировать
-JSON-данные для веб-страниц, формировать Excel-отчеты, а также предоставлять другие сервисы.`
+Проект создан на Python с использованием `Typer`, `Rich`, `pandas`, `openpyxl`, `requests`, `pytest` и Poetry.
 
 ---
 
-Мои конфигурационные настройки, свои можно посмотреть командой:
+## Возможности
 
-```
-poetry config --list
-```
-* cache-dir = "C:\\Users\\bache\\AppData\\Local\\pypoetry\\Cache"
-* data-dir = "C:\\Users\\bache\\AppData\\Roaming\\pypoetry"
-* installer.max-workers = null
-* installer.no-binary = null
-* installer.only-binary = null
-* installer.parallel = true
-* installer.re-resolve = false
-* keyring.enabled = true
-* python.installation-dir = "{data-dir}\\python"  # C:\Users\bache\AppData\Roaming\poetry\python
-* requests.max-retries = 0
-* solver.lazy-wheel = true
-* system-git-client = false
-* virtualenvs.create = true
-* virtualenvs.in-project = true
-* virtualenvs.options.always-copy = false
-* virtualenvs.options.no-pip = false
-* virtualenvs.options.system-site-packages = false
-* virtualenvs.path = "{cache-dir}\\virtualenvs"  # C:\Users\bache\AppData\Local\poetry\Cache\virtualenvs
-* virtualenvs.prompt = "{project_name}-py{python_version}"
-* virtualenvs.use-poetry-python = false
+- Чтение банковской выписки из Excel (`.xlsx`)
+- Общая сводка операций
+- Раздельный анализ RUB и CNY
+- Исключение неуспешных операций (`FAILED`) по умолчанию
+- Отчёт по крупнейшим категориям расходов
+- Анализ расходов по дням недели
+- Поиск операций по описанию
+- Фильтрация результатов по категории, валюте, статусу и количеству строк
+- Красивый терминальный интерфейс через Rich
+- Экспорт аналитических данных в Excel
+- Unit- и CLI-тесты через pytest и `CliRunner`
 
 ---
 
-## Структура курсового проекта
-```
- tree -L 2
+## Технологии
+
+| Инструмент | Назначение |
+|---|---|
+| Python 3.11+ | Основной язык проекта |
+| Poetry | Управление зависимостями и виртуальным окружением |
+| pandas | Чтение, обработка и агрегация Excel-данных |
+| openpyxl | Формирование и оформление Excel-отчётов |
+| Typer | Создание CLI-команд |
+| Rich | Таблицы, панели, цветной вывод и ошибки в терминале |
+| requests | HTTP-запросы к внешним API |
+| apimoex | Получение данных Московской биржи |
+| cbrapi | Получение валютных данных ЦБ РФ |
+| pytest | Автоматическое тестирование |
+| pytest-cov | Анализ покрытия тестами |
+| mypy | Проверка типов |
+| black / isort / flake8 | Форматирование и статический анализ кода |
+
+---
+
+## Требования
+
+- Python `>=3.11,<4.0.0`
+- Poetry
+- Git
+
+Ограничение Python связано с совместимостью используемых зависимостей, включая `cbrapi`.
+
+---
+
+## Установка
+
+### 1. Клонировать репозиторий
+
+```bash
+git clone [https://github.com/Alex-399745146/sky_bank.git](https://github.com/Alex-399745146/sky_bank.git)
+cd sky_bank
 ```
 
-```
-.
-|-- README.md
-|-- data
-|   |-- log_reports.txt
-|   `-- operations.xlsx
-|-- main.py
-|-- poetry.lock
-|-- pyproject.toml
-|-- src
-|   |-- __init__.py
-|   |-- __pycache__
-|   |-- data_extract.py
-|   |-- main_page
-|   |-- reports_page
-|   `-- services_page
-|-- tests
-|   |-- __init__.py
-|   `-- test_data_extract.py
-`-- user_settings.json
+### 2. Установить зависимости
 
+```bash
+poetry install
+```
+
+### 3. Проверить CLI
+
+```bash
+poetry run sky-bank --help
 ```
 
 ---
 
-## API-key открытый ключь не нужен
+## Формат Excel-выписки
 
-Для стабильности работы ПО принял решение данные по парам валют и цены на акции брать из отечественных источников
-таких ка ЦБ РФ, "Мосбиржа".
+Для работы CLI Excel-файл должен содержать следующие столбцы:
 
-* Для корректной работы API-запросов установить библиотеки
-```shell
-import apimoex
-import cbrapi  # type: ignore
-```
-* В проекте есть шаблон файла `.env` с указанием названий всех переменных, необходимых для работы приложения.
-это сделанно для выполнения таска по курсовой работе.
+| Столбец | Назначение |
+|---|---|
+| `Дата операции` | Дата и время банковской операции |
+| `Номер карты` | Последние цифры или маска номера карты |
+| `Статус` | Статус операции, например `OK` или `FAILED` |
+| `Сумма платежа` | Сумма операции: расход — отрицательное число, доход — положительное |
+| `Валюта платежа` | Валюта операции, например `RUB` или `CNY` |
+| `Категория` | Категория операции |
+| `Описание` | Текстовое описание операции |
 
----
+Пример строки:
 
-### Пользовательские настройки
-```
-{
-  "user_currencies": ["USD", "EUR"],
-  "user_stocks": ["SBER", "YDEX", "VTBR", "OZON", "VKCO"]
-}
-```
-* Из-за действующих ограничений политического характера API ПО выдаёт актуальные данные - цены на акции только тех 
-компаний которые имеют доступ на торгуемую площадку Мосбиржи, а это как правило акции компаний соблюдающих законы РФ.'
+| Дата операции | Номер карты | Статус | Сумма платежа | Валюта платежа | Категория | Описание |
+|---|---|---|---:|---|---|---|
+| `31.12.2021 16:39:04` | `*7197` | `OK` | `-118.12` | `RUB` | `Супермаркеты` | `Магнит` |
 
 ---
 
-## my_pyproject.toml
+## Использование CLI
 
+Все команды запускаются через Poetry:
+
+```bash
+poetry run sky-bank <команда>
 ```
-[project]
-name = "sky-bank"
-version = "0.1.0"
-description = ""
-authors = [
-    {name = "Alexsandr Bachevskiy",email = "bachevskiiaa@gmail.com"}
-]
-readme = "README.md"
-#requires-python = ">=3.13"
-requires-python = ">=3.11,<4.0.0" # из-за конфликта c библ. cbrapi
-dependencies = [
-#    "pandas[excel] (>=3.0.0,<4.0.0)",
-    "pandas[excel] (>=2.3.2,<3.0.0)", # из-за конфликта c библ. cbrapi
-    "requests (>=2.32.5,<3.0.0)",
-    "apimoex (>=1.4.0,<2.0.0)"
-]
 
-[tool.poetry]
-packages = [{include = "sky_bank", from = "src"}]
+### Справка
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[dependency-groups]
-lint = [
-    "flake8 (>=7.3.0,<8.0.0)",
-    "mypy (>=1.19.1,<2.0.0)",
-    "black (>=26.1.0,<27.0.0)",
-    "isort (>=7.0.0,<8.0.0)"
-]
-dev = [
-    "python-dotenv (>=1.2.1,<2.0.0)"
-]
-
-[tool.mypy]
-python_version = "3.13"
-disallow_untyped_defs = true
-no_implicit_optional = true
-warn_return_any = true
-check_untyped_defs = false
-strict = false
-warn_unreachable = false
-exclude = [".venv", "__pycache__", ".git"]
-
-[[tool.mypy.overrides]]
-module = ['tests.*'] # для какого модуля
-allow_untyped_defs = true # переопределение настройки
-
-[tool.black]
-line-length = 119
-exclude = '''
-(
-  /(
-      \.eggs
-    | \.git
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | dist
-  )/
-  | foo.py
-)
-'''
-
-[tool.isort]
-line_length = 119
+```bash
+poetry run sky-bank --help
 ```
+
+### Версия приложения
+
+```bash
+poetry run sky-bank version
+```
+
+### Общая сводка операций
+
+```bash
+poetry run sky-bank overview data/operations.xlsx
+```
+
+Команда показывает:
+
+- период операций;
+- валюту;
+- количество операций;
+- число карт и категорий;
+- доходы;
+- расходы;
+- итоговый баланс.
+
+По умолчанию учитываются только успешные операции со статусом `OK` в валюте `RUB`.
+
+Использование другой валюты:
+
+```bash
+poetry run sky-bank overview data/operations.xlsx --currency CNY
+```
+
+Учёт неуспешных операций:
+
+```bash
+poetry run sky-bank overview data/operations.xlsx --include-failed
+```
+
+### Расходы по категориям
+
+```bash
+poetry run sky-bank categories data/operations.xlsx
+```
+
+Показать только пять крупнейших категорий:
+
+```bash
+poetry run sky-bank categories data/operations.xlsx --limit 5
+```
+
+Отчёт по операциям CNY:
+
+```bash
+poetry run sky-bank categories data/operations.xlsx --currency CNY
+```
+
+Учесть операции со статусом `FAILED`:
+
+```bash
+poetry run sky-bank categories data/operations.xlsx --include-failed
+```
+
+### Расходы по дням недели
+
+```bash
+poetry run sky-bank weekdays data/operations.xlsx
+```
+
+Отчёт показывает:
+
+- день недели;
+- количество расходных операций;
+- общую сумму расходов;
+- средний расход на одну операцию.
+
+Пример с включением `FAILED`-операций:
+
+```bash
+poetry run sky-bank weekdays data/operations.xlsx --include-failed
+```
+
+### Поиск операций
+
+Поиск операций по описанию:
+
+```bash
+poetry run sky-bank search data/operations.xlsx "Магнит"
+```
+
+Ограничить число результатов:
+
+```bash
+poetry run sky-bank search data/operations.xlsx "Магнит" --limit 5
+```
+
+Дополнительно отфильтровать по категории:
+
+```bash
+poetry run sky-bank search data/operations.xlsx \
+  "Магнит" \
+  --category "Супермаркеты"
+```
+
+Искать по операциям CNY:
+
+```bash
+poetry run sky-bank search data/operations.xlsx "перевод" --currency CNY
+```
+
+Если совпадения отсутствуют, приложение выводит понятное сообщение в терминале, а не traceback.
+
+---
+
+## Логика фильтрации
+
+Во всех аналитических командах используются единые правила:
+
+| Правило | Значение по умолчанию |
+|---|---|
+| Валюта | `RUB` |
+| Статус операций | Только `OK` |
+| Расход | `Сумма платежа < 0` |
+| Доход | `Сумма платежа > 0` |
+| Валюта для отчётов | Передаётся через `--currency` |
+| Неуспешные операции | Добавляются только через `--include-failed` |
+
+Разделение валют важно: суммы RUB и CNY не смешиваются в одной аналитической сводке.
+
+---
+
+## Excel-экспорт
+
+Проект содержит отдельный модуль экспорта:
+
+```text
+src/sky_bank/exporters.py
+```
+
+Он формирует Excel-файл с тремя листами:
+
+```text
+Сводка
+Категории
+Дни недели
+```
+
+В отчёте используются:
+
+- цветные заголовки;
+- автоматические фильтры;
+- закреплённая строка заголовков;
+- автоматическая ширина колонок;
+- числовое форматирование денежных сумм.
+
+Папка `reports/` исключена из Git, поскольку содержит локально сгенерированные результаты работы программы.
+
+---
+
+## Архитектура проекта
+
+```text
+sky_bank/
+├── data/
+│   └── operations.xlsx
+│
+├── reports/
+│   └── *.xlsx
+│
+├── src/
+│   ├── sky_bank/
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── cli.py
+│   │   └── exporters.py
+│   │
+│   ├── main_page/
+│   ├── reports_page/
+│   ├── services_page/
+│   └── data_extract.py
+│
+├── tests/
+│   ├── conftest.py
+│   ├── test_analytics.py
+│   ├── test_cli.py
+│   ├── test_exporters.py
+│   └── ...
+│
+├── .gitignore
+├── pyproject.toml
+├── poetry.lock
+└── README.md
+```
+
+### Разделение ответственности
+
+| Модуль | Ответственность |
+|---|---|
+| `analytics.py` | Бизнес-логика: сводка, категории, поиск, дни недели |
+| `cli.py` | Typer-команды, входные параметры, Rich-вывод и обработка ошибок |
+| `exporters.py` | Формирование и оформление Excel-отчётов |
+| `tests/` | Unit-тесты, тесты CLI и тесты Excel-экспорта |
+
+---
+
+## Тестирование
+
+Запустить все тесты:
+
+```bash
+poetry run pytest -q
+```
+
+Запустить тесты с покрытием:
+
+```bash
+poetry run pytest --cov=src --cov-report=term-missing
+```
+
+В проекте тестируются:
+
+- расчёт сводки;
+- фильтрация операций по валюте и статусу;
+- категории расходов;
+- расходы по дням недели;
+- поиск;
+- создание Excel-файла;
+- CLI-команды через `typer.testing.CliRunner`.
+
+---
+
+## Проверки качества
+
+### Форматирование Black
+
+```bash
+poetry run black --check src tests
+```
+
+### Сортировка импортов isort
+
+```bash
+poetry run isort --check-only src tests
+```
+
+### Линтер flake8
+
+```bash
+poetry run flake8 src tests
+```
+
+### Проверка типов MyPy
+
+```bash
+poetry run mypy src
+```
+
+---
+
+## Дальнейшее развитие
+
+- Добавить CLI-команду экспорта Excel: `sky-bank export-excel`
+- Добавить JSON-экспорт аналитических данных
+- Добавить фильтрацию по периоду дат
+- Добавить поиск по нескольким полям
+- Добавить прогресс-бар Rich при обработке крупных файлов
+- Добавить GitHub Actions для автоматического запуска тестов и линтеров
+- Добавить скриншоты команд в README
+- Добавить Docker-конфигурацию
