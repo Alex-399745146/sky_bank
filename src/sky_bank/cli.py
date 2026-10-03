@@ -21,6 +21,7 @@ from sky_bank.analytics import (
     build_overview,
     search_transactions,
 )
+from sky_bank.exporters import export_analysis_report
 
 app = typer.Typer(
     name="sky-bank",
@@ -450,4 +451,90 @@ def search(
         query=query,
         currency=currency.upper(),
         include_failed=include_failed,
+    )
+
+
+@app.command()
+def export_excel(
+    file_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Путь к Excel-файлу с банковскими операциями.",
+    ),
+    output: Path = typer.Option(
+        ...,
+        "--output",
+        "-o",
+        file_okay=True,
+        dir_okay=False,
+        writable=True,
+        help="Путь для сохранения Excel-отчёта.",
+    ),
+    currency: str = typer.Option(
+        "RUB",
+        "--currency",
+        "-c",
+        help="Валюта операций для отчёта.",
+    ),
+    include_failed: bool = typer.Option(
+        False,
+        "--include-failed",
+        help="Учитывать операции со статусом FAILED.",
+    ),
+    limit: int = typer.Option(
+        10,
+        "--limit",
+        "-l",
+        min=1,
+        help="Максимальное количество категорий в отчёте.",
+    ),
+) -> None:
+    """Экспортирует аналитический отчёт в Excel."""
+    normalized_currency = currency.upper()
+
+    try:
+        transactions = pd.read_excel(file_path)
+
+        overview_data = build_overview(
+            transactions,
+            currency=normalized_currency,
+            include_failed=include_failed,
+        )
+        categories_report = build_expenses_by_category(
+            transactions,
+            currency=normalized_currency,
+            include_failed=include_failed,
+            limit=limit,
+        )
+        weekdays_report = build_expenses_by_weekday(
+            transactions,
+            currency=normalized_currency,
+            include_failed=include_failed,
+        )
+
+        output_path = export_analysis_report(
+            output,
+            overview_data,
+            categories_report,
+            weekdays_report,
+        )
+    except (OSError, ValueError) as error:
+        console.print(
+            Panel(
+                str(error),
+                title="[bold red]Ошибка экспорта[/bold red]",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(code=1) from error
+
+    console.print(
+        Panel.fit(
+            f"Отчёт успешно сохранён:\n[bold green]{output_path}[/bold green]",
+            title="[bold green]Экспорт завершён[/bold green]",
+            border_style="green",
+        )
     )

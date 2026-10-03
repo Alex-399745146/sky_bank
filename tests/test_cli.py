@@ -140,3 +140,35 @@ def test_weekdays_command_displays_weekday_report(
     assert "Воскресенье" in result.stdout
     assert "1" in result.stdout
     assert "100.00 RUB" in result.stdout
+
+
+def test_export_excel_command_creates_report(
+    sample_transactions: pd.DataFrame,
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Команда export-excel создаёт Excel-отчёт."""
+    excel_file = tmp_path / "operations.xlsx"
+    excel_file.touch()
+
+    output_path = tmp_path / "report.xlsx"
+
+    monkeypatch.setattr(
+        "sky_bank.cli.pd.read_excel",
+        lambda _: sample_transactions.copy(),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "export-excel",
+            str(excel_file),
+            "--output",
+            str(output_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert output_path.exists()
+    assert "Экспорт завершён" in result.stdout
+    assert "Отчёт успешно сохранён" in result.stdout
